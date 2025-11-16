@@ -1,0 +1,19 @@
+﻿using System;
+using CarRental.Core.Enums;
+
+namespace CarRental.Core.Entities
+{
+    public class Notification : AuditableEntity
+    {
+        public long UserId { get; set; }
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public bool IsRead { get; set; }
+        public NotificationStatus Status { get; set; }
+        public string Type { get; set; }
+        public DateTime? LastAttemptAt { get; set; }
+
+        // Navigation Properties
+        public virtual User User { get; set; }
+    }
+}
