@@ -16,11 +16,10 @@ namespace CarRental.Core.Entities
         public bool IsInsured { get; set; }
         public string InsurancePolicy { get; set; }
         public int Geometry { get; set; }
-        public VehicleStatus CurrentStatus { get; set; }
         public string Issues { get; set; }
 
         // Navigation Properties
-        public virtual ICollection<Location> Locations { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<VehicleImage> Images { get; set; }
         public virtual ICollection<Maintenance> MaintenanceHistory { get; set; }
         public virtual ICollection<Document> Documents { get; set; }
@@ -35,7 +34,6 @@ namespace CarRental.Core.Entities
         public void UpdateStatus(VehicleStatus status)
         {
             Status = status;
-            CurrentStatus = status;
             UpdatedAt = DateTime.UtcNow;
         }
 

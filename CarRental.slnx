@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="CarRental.Core/CarRental.Core.csproj" />
+  <Project Path="CarRental.Persistence/CarRental.Persistence.csproj" Id="cb83879e-aaa4-471c-941b-76b57ab320ec" />
 </Solution>

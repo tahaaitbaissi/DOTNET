@@ -13,10 +13,10 @@ namespace CarRental.Core.Entities
 
         // Navigation Properties
         public virtual User User { get; set; }
-        public virtual ICollection<Location> Locations { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Document> Documents { get; set; }
 
-        public List<Location> GetActiveBookings()
+        public List<Booking> GetActiveBookings()
         {
             throw new NotImplementedException();
         }

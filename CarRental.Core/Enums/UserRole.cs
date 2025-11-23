@@ -1,4 +1,4 @@
-namespace CarRental.Core.Enums
+﻿namespace CarRental.Core.Enums
 {
     public enum UserRole
     {

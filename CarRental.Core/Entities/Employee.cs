@@ -2,7 +2,7 @@
 
 namespace CarRental.Core.Entities
 {
-    public class Employee : Entity
+    public class Employee : AuditableEntity
     {
         public long UserId { get; set; }
         public string Position { get; set; }
