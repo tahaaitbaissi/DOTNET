@@ -18,6 +18,13 @@ namespace CarRental.Core.Entities
         public int Geometry { get; set; }
         public string Issues { get; set; }
 
+        public int CurrentMileage { get; set; }
+        public int? LastMaintenanceMileage { get; set; }
+        public DateTime? LastMaintenanceDate { get; set; }
+
+        public long? VehicleTypeId { get; set; }
+        public virtual VehicleType VehicleType { get; set; }
+
         // Navigation Properties
         public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<VehicleImage> Images { get; set; }

@@ -21,19 +21,20 @@ namespace CarRental.Persistence.Repositories
                 .Where(b => b.ClientId == clientId)
                 .Include(b => b.Vehicle)
                 .Include(b => b.Payments)
-                .OrderByDescending(b => b.BookingTime)
+                .OrderByDescending(b => b.StartDate)
                 .ToListAsync();
         }
 
         public async Task<bool> IsVehicleAvailableAsync(long vehicleId, DateRange range)
         {
-            // Check for overlapping bookings (excluding cancelled ones)
-            // Using BookingTime as reference point - adjust based on actual business logic
+            // Check for overlapping bookings (excluding cancelled and completed ones)
+            // Two date ranges overlap if: StartDate < range.End AND range.Start < EndDate
             var hasOverlap = await _dbSet
                 .Where(b => b.VehicleId == vehicleId &&
                            b.Status != Core.Enums.BookingStatus.Cancelled &&
-                           b.Enable <= range.End &&
-                           b.BookingTime >= range.Start)
+                           b.Status != Core.Enums.BookingStatus.Completed &&
+                           b.StartDate < range.End &&
+                           range.Start < b.EndDate)
                 .AnyAsync();
 
             return !hasOverlap;
@@ -43,8 +44,9 @@ namespace CarRental.Persistence.Repositories
         {
             return await _dbSet
                 .Where(b => b.Status != Core.Enums.BookingStatus.Cancelled &&
-                           b.Enable <= range.End &&
-                           b.BookingTime >= range.Start)
+                           b.Status != Core.Enums.BookingStatus.Completed &&
+                           b.StartDate < range.End &&
+                           range.Start < b.EndDate)
                 .Include(b => b.Vehicle)
                 .Include(b => b.Client)
                 .ToListAsync();

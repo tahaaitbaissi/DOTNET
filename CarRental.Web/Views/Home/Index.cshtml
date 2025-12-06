@@ -1,0 +1,86 @@
+@model IEnumerable<CarRental.Web.Models.Api.VehicleDto>
+
+@{
+    ViewData["Title"] = "Accueil - Location de Véhicules";
+}
+
+<div class="hero-section text-center mb-5 p-5 rounded-custom" style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white;">
+    <h1 class="display-4 fw-bold mb-3">Bienvenue chez Location Auto</h1>
+    <p class="lead mb-4">Trouvez le véhicule parfait pour votre prochain voyage</p>
+    <a asp-controller="Vehicule" asp-action="Index" class="btn btn-light btn-lg">Parcourir nos véhicules</a>
+</div>
+
+<h2 class="mb-4">Véhicules Disponibles</h2>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row">
+        @foreach (var vehicule in Model.Take(6))
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card vehicle-card h-100 hover-lift">
+                    @if (!string.IsNullOrEmpty(vehicule.ImageUrl))
+                    {
+                        <img src="@vehicule.ImageUrl" class="card-img-top" alt="@vehicule.Make @vehicule.Model" style="height: 250px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <span style="font-size: 4rem;">🚗</span>
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@vehicule.Make @vehicule.Model</h5>
+                        <p class="card-text">
+                            <span class="vehicle-price">@vehicule.DailyRate.ToString("C")/jour</span>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-controller="Vehicule" asp-action="Details" asp-route-id="@vehicule.Id" class="btn btn-primary w-100">Voir détails</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <div class="text-center mt-4">
+        <a asp-controller="Vehicule" asp-action="Index" class="btn btn-outline-primary btn-lg">Voir tous les véhicules</a>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <h4>Aucun véhicule disponible</h4>
+        <p>Notre flotte est actuellement vide. Revenez bientôt!</p>
+    </div>
+}
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card text-center hover-lift">
+            <div class="card-body">
+                <div class="display-4 text-primary mb-3">🚗</div>
+                <h5 class="card-title">Large Flotte</h5>
+                <p class="card-text">Des véhicules pour tous les besoins et tous les budgets</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-center hover-lift">
+            <div class="card-body">
+                <div class="display-4 text-success mb-3">💰</div>
+                <h5 class="card-title">Prix Compétitifs</h5>
+                <p class="card-text">Les meilleurs tarifs du marché garantis</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-center hover-lift">
+            <div class="card-body">
+                <div class="display-4 text-info mb-3">⚡</div>
+                <h5 class="card-title">Réservation Rapide</h5>
+                <p class="card-text">Réservez en quelques clics et partez!</p>
+            </div>
+        </div>
+    </div>
+</div>

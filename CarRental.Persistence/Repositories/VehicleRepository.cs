@@ -28,10 +28,12 @@ namespace CarRental.Persistence.Repositories
             }
 
             // Exclude vehicles that have overlapping bookings
+            // Two date ranges overlap if: StartDate < range.End AND range.Start < EndDate
             var unavailableVehicleIds = await _context.Bookings
                 .Where(b => b.Status != BookingStatus.Cancelled &&
-                           b.Enable <= range.End &&
-                           b.BookingTime >= range.Start)
+                           b.Status != BookingStatus.Completed &&
+                           b.StartDate < range.End &&
+                           range.Start < b.EndDate)
                 .Select(b => b.VehicleId)
                 .Distinct()
                 .ToListAsync();
@@ -50,6 +52,12 @@ namespace CarRental.Persistence.Repositories
                            v.MaintenanceHistory.Any(m => !m.IsCompleted))
                 .Include(v => v.MaintenanceHistory.Where(m => !m.IsCompleted))
                 .ToListAsync();
+        }
+
+        public async Task<Vehicle?> GetByVinAsync(string vin)
+        {
+            return await _dbSet
+                .FirstOrDefaultAsync(v => v.VIN == vin);
         }
     }
 }

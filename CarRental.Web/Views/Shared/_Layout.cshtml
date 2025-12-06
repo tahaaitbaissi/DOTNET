@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Location de Véhicules</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">🚗 Location Auto</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">🏠 Accueil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Vehicule" asp-action="Index">🚙 Véhicules</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Location" asp-action="Index">📋 Mes Réservations</a>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    👤 @User.Identity.Name
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                            👤 Mon Profil
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Location" asp-action="Index">
+                                            📋 Mes Réservations
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" asp-controller="Account" asp-action="Logout" class="px-3">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                🚪 Déconnexion
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
+                                    🔐 Connexion
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-primary text-white ms-2" asp-controller="Account" asp-action="Register">
+                                    ✨ Inscription
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            <div class="row py-4">
+                <div class="col-md-4">
+                    <h5>🚗 Location Auto</h5>
+                    <p class="text-muted">Votre partenaire de confiance pour la location de véhicules au Maroc.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Liens rapides</h6>
+                    <ul class="list-unstyled">
+                        <li><a asp-controller="Home" asp-action="Index" class="text-muted">Accueil</a></li>
+                        <li><a asp-controller="Vehicule" asp-action="Index" class="text-muted">Véhicules</a></li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li><a asp-controller="Location" asp-action="Index" class="text-muted">Mes Réservations</a></li>
+                            <li><a asp-controller="Account" asp-action="Profile" class="text-muted">Mon Profil</a></li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Contact</h6>
+                    <p class="text-muted">
+                        📧 contact@locationauto.ma<br />
+                        📱 +212 6XX XXX XXX<br />
+                        📍 Marrakech, Maroc
+                    </p>
+                </div>
+            </div>
+            <hr />
+            <div class="text-center">
+                <small>&copy; 2025 - Location de Véhicules - Tous droits réservés</small>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

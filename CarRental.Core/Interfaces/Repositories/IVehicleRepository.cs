@@ -9,5 +9,6 @@ namespace CarRental.Core.Interfaces.Repositories
     {
         Task<IEnumerable<Vehicle>> GetAvailableVehiclesAsync(DateRange range, long? vehicleTypeId);
         Task<IEnumerable<Vehicle>> GetVehiclesNeedingMaintenanceAsync();
+        Task<Vehicle?> GetByVinAsync(string vin);
     }
 }

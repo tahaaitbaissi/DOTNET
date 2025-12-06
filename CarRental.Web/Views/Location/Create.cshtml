@@ -1,0 +1,67 @@
+@model CarRental.Web.Models.Api.VehicleDto
+
+@{
+    ViewData["Title"] = "Nouvelle Réservation";
+}
+
+<h1>Nouvelle Réservation</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Véhicule sélectionné</h4>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" class="img-fluid rounded mb-3" alt="@Model.Make @Model.Model" />
+                }
+                <h5>@Model.Make @Model.Model</h5>
+                <p>
+                    <strong>Places:</strong> @Model.Seats<br />
+                    <strong>Couleur:</strong> @Model.Color<br />
+                    <strong>Année:</strong> @Model.Year<br />
+                    <strong>Tarif:</strong> <span class="text-success fs-4">@Model.DailyRate.ToString("C")/jour</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Détails de la location</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="Create" asp-controller="Location">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="vehiculeId" value="@Model.Id" />
+                    
+                    <div class="mb-3">
+                        <label for="dateDebut" class="form-label">Date de début</label>
+                        <input type="date" class="form-control" id="dateDebut" name="dateDebut" 
+                               min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dateFin" class="form-label">Date de fin</label>
+                        <input type="date" class="form-control" id="dateFin" name="dateFin" 
+                               min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100 mb-2">Confirmer la réservation</button>
+                </form>
+                
+                <a asp-controller="Vehicule" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary w-100">
+                    Annuler
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

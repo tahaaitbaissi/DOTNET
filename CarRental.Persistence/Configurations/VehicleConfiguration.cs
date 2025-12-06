@@ -66,10 +66,10 @@ namespace CarRental.Persistence.Configurations
 
             builder.HasIndex(v => v.Status);
 
-            // VehicleType relationship (using shadow property since Vehicle doesn't have VehicleTypeId)
-            builder.HasOne<VehicleType>()
+            // VehicleType relationship
+            builder.HasOne(v => v.VehicleType)
                 .WithMany(vt => vt.Vehicles)
-                .HasForeignKey("VehicleTypeId")
+                .HasForeignKey(v => v.VehicleTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationships

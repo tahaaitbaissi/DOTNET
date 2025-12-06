@@ -12,11 +12,15 @@ namespace CarRental.Persistence
     {
         public static IServiceCollection AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Register DbContext
+            // Get connection string
+            var connectionString = configuration.GetConnectionString("DefaultConnection") 
+                ?? "Server=localhost;Database=CarRentalDb;User=root;Password=123;";
+
+            // Register DbContext with MySQL
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection") ??
-                    "Server=(localdb)\\mssqllocaldb;Database=CarRentalDb;Trusted_Connection=True;MultipleActiveResultSets=true",
+                options.UseMySql(
+                    connectionString,
+                    ServerVersion.AutoDetect(connectionString),
                     b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Register Repositories
@@ -24,6 +28,7 @@ namespace CarRental.Persistence
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<IVehicleRepository, VehicleRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             // Register UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();

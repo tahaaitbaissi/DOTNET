@@ -1,0 +1,58 @@
+@model IEnumerable<CarRental.Web.Models.Api.BookingDto>
+
+@{
+    ViewData["Title"] = "Mes Locations";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (Model != null && Model.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Véhicule</th>
+                    <th>Date début</th>
+                    <th>Date fin</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model)
+                {
+                    <tr>
+                        <td>@booking.Id</td>
+                        <td>@booking.VehicleName</td>
+                        <td>@booking.StartDate.ToString("dd/MM/yyyy")</td>
+                        <td>@booking.EndDate.ToString("dd/MM/yyyy")</td>
+                        <td>@booking.TotalAmount.ToString("C")</td>
+                        <td>
+                            <span class="badge @(booking.Status == "Confirmed" ? "bg-success" : booking.Status == "Cancelled" ? "bg-danger" : "bg-warning")">
+                                @booking.Status
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Details" asp-route-id="@booking.Id" 
+                                   class="btn btn-sm btn-info" title="Voir détails">
+                                    👁️
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <p>Vous n'avez pas encore de location.</p>
+        <a asp-controller="Vehicule" asp-action="Index" class="btn btn-primary">Parcourir les véhicules</a>
+    </div>
+}

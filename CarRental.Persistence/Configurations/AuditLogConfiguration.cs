@@ -23,10 +23,10 @@ namespace CarRental.Persistence.Configurations
                 .HasMaxLength(100);
 
             builder.Property(a => a.OldValues)
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("LONGTEXT");
 
             builder.Property(a => a.NewValues)
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("LONGTEXT");
 
             builder.Property(a => a.PerformedBy)
                 .HasMaxLength(100);

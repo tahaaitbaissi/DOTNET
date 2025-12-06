@@ -24,7 +24,10 @@ namespace CarRental.Persistence.Configurations
                 .IsRequired()
                 .HasConversion<int>();
 
-            builder.Property(b => b.Enable)
+            builder.Property(b => b.StartDate)
+                .IsRequired();
+
+            builder.Property(b => b.EndDate)
                 .IsRequired();
 
             builder.Property(b => b.PickUpLocation)
@@ -32,9 +35,6 @@ namespace CarRental.Persistence.Configurations
 
             builder.Property(b => b.DropOffLocation)
                 .HasMaxLength(500);
-
-            builder.Property(b => b.BookingTime)
-                .IsRequired();
 
             builder.Property(b => b.TotalAmount)
                 .HasPrecision(18, 2);
@@ -56,8 +56,8 @@ namespace CarRental.Persistence.Configurations
             builder.HasIndex(b => b.ClientId);
             builder.HasIndex(b => b.VehicleId);
             builder.HasIndex(b => b.Status);
-            builder.HasIndex(b => b.BookingTime);
-            builder.HasIndex(b => new { b.VehicleId, b.Enable, b.Status });
+            builder.HasIndex(b => b.StartDate);
+            builder.HasIndex(b => new { b.VehicleId, b.StartDate, b.EndDate, b.Status });
 
             // Relationships
             builder.HasOne(b => b.Client)

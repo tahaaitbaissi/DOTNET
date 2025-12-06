@@ -1,0 +1,139 @@
+@model CarRental.Web.Models.Api.BookingDto
+
+@{
+    ViewData["Title"] = "Détails de la réservation";
+    var canCancel = Model.Status == "Pending" || Model.Status == "Confirmed";
+}
+
+<div class="row">
+    <div class="col-md-12 mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            ← Retour à mes réservations
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Détails de la réservation</h4>
+                <div>
+                    @if (canCancel)
+                    {
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                            ❌ Annuler
+                        </button>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Numéro de réservation:</strong>
+                        <p class="fs-5 text-primary">@Model.Id</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Statut:</strong>
+                        <p>
+                            <span class="badge @(Model.Status == "Confirmed" ? "bg-success" : Model.Status == "Cancelled" ? "bg-danger" : "bg-warning") fs-6">
+                                @Model.Status
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="mt-4 mb-3">Informations du véhicule</h5>
+                <div class="row">
+                    <div class="col-md-12">
+                        <p>
+                            <strong>Véhicule:</strong> @Model.VehicleName <br />
+                        </p>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="mt-4 mb-3">Période de location</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Date de début:</strong>
+                        <p class="fs-5">@Model.StartDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Date de fin:</strong>
+                        <p class="fs-5">@Model.EndDate.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+                <p>
+                    <strong>Durée:</strong> @((Model.EndDate - Model.StartDate).Days) jour(s)
+                </p>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="text-success">Montant total: @Model.TotalAmount.ToString("C")</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Informations</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Date de demande:</strong><br />
+                    @Model.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmer l'annulation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>⚠️ Êtes-vous sûr de vouloir annuler cette réservation?</p>
+                <p><strong>Numéro:</strong> @Model.Id</p>
+                <p><strong>Période:</strong> @Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
+                <p class="text-muted">Cette action ne peut pas être annulée.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non, garder</button>
+                <form method="post" asp-action="Cancel" asp-route-id="@Model.Id">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Oui, annuler la réservation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

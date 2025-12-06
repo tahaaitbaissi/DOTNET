@@ -39,11 +39,15 @@ namespace CarRental.Persistence.Repositories.Base
             return Task.CompletedTask;
         }
 
-        public virtual Task DeleteAsync(T entity)
+        public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
-            return Task.CompletedTask;
+            return;
+        }
+
+        public async Task<int> CountAsync()
+        {
+            return await _dbSet.CountAsync();
         }
     }
 }
-

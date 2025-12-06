@@ -11,6 +11,14 @@ namespace CarRental.Core.Entities
         public string PasswordHash { get; set; }
         public bool IsActive { get; set; } = true;
 
+        // Verification & Security
+        public string? VerificationToken { get; set; }
+        public DateTime? VerificationTokenExpiry { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
+        
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
+
         // Navigation Properties
         public virtual Client Client { get; set; }
         public virtual Employee Employee { get; set; }

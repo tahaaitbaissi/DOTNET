@@ -1,7 +1,9 @@
 using CarRental.Core.Interfaces;
 using CarRental.Core.Interfaces.Repositories;
 using CarRental.Persistence.Repositories;
+using CarRental.Persistence.Repositories.Base;
 using Microsoft.EntityFrameworkCore.Storage;
+using CarRental.Core.Entities;
 using System;
 using System.Threading.Tasks;
 
@@ -10,11 +12,12 @@ namespace CarRental.Persistence.UnitOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
-        private IDbContextTransaction _transaction;
+        private IDbContextTransaction? _transaction;
 
-        private IBookingRepository _bookings;
-        private IVehicleRepository _vehicles;
-        private IClientRepository _clients;
+        private IBookingRepository? _bookings;
+        private IVehicleRepository? _vehicles;
+        private IClientRepository? _clients;
+        private IUserRepository? _users;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -42,6 +45,68 @@ namespace CarRental.Persistence.UnitOfWork
             get
             {
                 return _clients ??= new ClientRepository(_context);
+            }
+        }
+
+        public IUserRepository Users
+        {
+            get
+            {
+                return _users ??= new UserRepository(_context);
+            }
+        }
+
+        private IRepository<VehicleImage>? _vehicleImages;
+        public IRepository<VehicleImage> VehicleImages
+        {
+            get
+            {
+                return _vehicleImages ??= new Repository<VehicleImage>(_context);
+            }
+        }
+
+        private IRepository<VehicleType>? _vehicleTypes;
+        public IRepository<VehicleType> VehicleTypes
+        {
+            get
+            {
+                return _vehicleTypes ??= new Repository<VehicleType>(_context);
+            }
+        }
+
+        private IPaymentRepository? _payments;
+        public IPaymentRepository Payments
+        {
+            get
+            {
+                return _payments ??= new PaymentRepository(_context);
+            }
+        }
+
+        private IEmployeeRepository? _employees;
+        public IEmployeeRepository Employees
+        {
+            get
+            {
+                return _employees ??= new EmployeeRepository(_context);
+            }
+        }
+
+        private IMaintenanceRepository? _maintenances;
+        public IMaintenanceRepository Maintenances
+        {
+            get
+            {
+                return _maintenances ??= new MaintenanceRepository(_context);
+            }
+        }
+
+        private INotificationRepository? _notifications;
+        public INotificationRepository Notifications
+        {
+            get
+            {
+                return _notifications ??= new NotificationRepository(_context);
             }
         }
 

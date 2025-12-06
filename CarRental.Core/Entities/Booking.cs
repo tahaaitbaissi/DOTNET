@@ -10,10 +10,10 @@ namespace CarRental.Core.Entities
 
         public int? CreatedBy { get; set; }
         public BookingStatus Status { get; set; }
-        public DateTime Enable { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public string PickUpLocation { get; set; }
         public string DropOffLocation { get; set; }
-        public DateTime BookingTime { get; set; }
         public decimal? TotalAmount { get; set; }
         public bool IsPaid { get; set; }
         public string Notes { get; set; }
@@ -42,16 +42,39 @@ namespace CarRental.Core.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public decimal CalculateOverdue(DateTime endTime)
+        /// <summary>
+        /// Calculate the rental duration in days
+        /// </summary>
+        public int GetDurationInDays()
         {
-            // TODO: Implement calculation
-            throw new NotImplementedException();
+            return (EndDate - StartDate).Days;
         }
 
-        public bool CheckOverdue(DateTime startDate, DateTime endDate)
+        /// <summary>
+        /// Check if the booking is overdue based on the current time
+        /// </summary>
+        public bool IsOverdue()
         {
-            // TODO: Implement check
-            throw new NotImplementedException();
+            return Status == BookingStatus.Confirmed && DateTime.UtcNow > EndDate;
+        }
+
+        /// <summary>
+        /// Calculate overdue fees based on daily rate
+        /// </summary>
+        public decimal CalculateOverdueFee(decimal dailyRate, decimal overdueMultiplier = 1.5m)
+        {
+            if (!IsOverdue()) return 0;
+            
+            var overdueDays = (DateTime.UtcNow - EndDate).Days;
+            return overdueDays * dailyRate * overdueMultiplier;
+        }
+
+        /// <summary>
+        /// Check if this booking overlaps with another date range
+        /// </summary>
+        public bool OverlapsWith(DateTime otherStart, DateTime otherEnd)
+        {
+            return StartDate < otherEnd && otherStart < EndDate;
         }
     }
 }
