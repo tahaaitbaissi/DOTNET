@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="CarRental.Application/CarRental.Application.csproj" Id="ad1cadd7-e57d-48da-a0eb-b2854989a75d" />
   <Project Path="CarRental.Core/CarRental.Core.csproj" />
+  <Project Path="CarRental.Desktop/CarRental.Desktop.csproj" Id="8cf80161-ce5c-4ed8-a8c2-04da0b359a6f" />
   <Project Path="CarRental.Infrastructure/CarRental.Infrastructure.csproj" Id="b1172878-6802-469a-a579-59bff1b33c4c" />
   <Project Path="CarRental.Persistence/CarRental.Persistence.csproj" />
   <Project Path="CarRental.Web/CarRental.Web.csproj" />
