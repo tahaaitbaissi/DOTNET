@@ -30,7 +30,7 @@ namespace CarRental.Infrastructure.Settings
         /// <summary>
         /// Email address to send from
         /// </summary>
-        public string FromEmail { get; set; } = "noreply@carrental.com";
+        public string FromEmail { get; set; } = "tahaaitbaissi@gmail.com";
 
         /// <summary>
         /// Display name for the sender

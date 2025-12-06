@@ -14,6 +14,7 @@ namespace CarRental.Application.DTOs
         public string DriverLicense { get; set; } = string.Empty;
         public DateTime LicenseExpiry { get; set; }
         public bool IsActive { get; set; }
+        public bool IsEmailVerified { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

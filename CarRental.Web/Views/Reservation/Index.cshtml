@@ -1,0 +1,52 @@
+@model IEnumerable<CarRental.Web.Models.Api.BookingDto>
+
+<div class="container py-5">
+    <h2 class="mb-4">My Bookings</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            You haven't made any bookings yet. <a asp-controller="Vehicule" asp-action="Index">Find a car now!</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle shadow-sm bg-white rounded">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking #</th>
+                        <th>Vehicle</th>
+                        <th>Dates</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.VehicleName</td>
+                            <td>
+                                <div>@item.StartDate.ToShortDateString()</div>
+                                <small class="text-muted">to @item.EndDate.ToShortDateString()</small>
+                            </td>
+                            <td>@item.TotalAmount.ToString("C")</td>
+                            <td>
+                                @if(item.Status == "Confirmed") { <span class="badge bg-success">Confirmed</span> }
+                                else if(item.Status == "Pending") { <span class="badge bg-warning text-dark">Pending</span> }
+                                else if(item.Status == "Cancelled") { <span class="badge bg-danger">Cancelled</span> }
+                                else { <span class="badge bg-secondary">@item.Status</span> }
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

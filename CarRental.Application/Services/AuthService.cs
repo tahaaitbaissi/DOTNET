@@ -186,6 +186,64 @@ namespace CarRental.Application.Services
             return Result<bool>.Success(true);
         }
 
+        public async Task<Result<bool>> ResendVerificationEmailAsync(string email)
+        {
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (user == null)
+            {
+                // Return success to avoid enumeration
+                return Result<bool>.Success(true);
+            }
+
+            if (user.IsEmailVerified)
+            {
+                return Result<bool>.Failure("Email is already verified.");
+            }
+
+            // Generate new token if expired or missing
+            if (string.IsNullOrEmpty(user.VerificationToken) || user.VerificationTokenExpiry < _dateTimeProvider.UtcNow)
+            {
+                user.VerificationToken = new Random().Next(100000, 999999).ToString();
+                user.VerificationTokenExpiry = _dateTimeProvider.UtcNow.AddMinutes(15);
+                user.UpdatedAt = _dateTimeProvider.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            // Send Email
+            try
+            {
+                await _emailService.SendAccountVerificationEmailAsync(user.Email, user.VerificationToken);
+            }
+            catch
+            {
+                // Log warning
+            }
+
+            return Result<bool>.Success(true);
+        }
+
+        public async Task<Result<bool>> ChangePasswordAsync(long userId, ChangePasswordDto dto)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return Result<bool>.Failure("User not found.");
+            }
+
+            // Verify current password
+            if (!_passwordHasher.VerifyPassword(dto.CurrentPassword, user.PasswordHash))
+            {
+                return Result<bool>.Failure("Current password is incorrect.");
+            }
+
+            // Update password
+            user.PasswordHash = _passwordHasher.HashPassword(dto.NewPassword);
+            user.UpdatedAt = _dateTimeProvider.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+            return Result<bool>.Success(true);
+        }
+
         public async Task<Result<bool>> ForgotPasswordAsync(string email)
         {
             var user = await _unitOfWork.Users.GetByEmailAsync(email);

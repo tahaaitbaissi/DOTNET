@@ -24,6 +24,8 @@ namespace CarRental.Infrastructure.Services
         {
             _settings = settings.Value;
             _logger = logger;
+            _logger.LogInformation("EmailService settings loaded: Host={Host}, Port={Port}, User={User}, DevMode={DevMode}, SSL={SSL}", 
+                _settings.SmtpHost, _settings.SmtpPort, _settings.Username, _settings.UseDevelopmentMode, _settings.UseSsl);
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)

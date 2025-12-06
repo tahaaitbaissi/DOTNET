@@ -127,6 +127,62 @@ namespace CarRental.WebApi.Controllers
         }
 
         /// <summary>
+        /// Resend verification email
+        /// </summary>
+        [HttpPost("resend-verification")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] ForgotPasswordDto dto) // Reusing DTO as it just needs Email
+        {
+            var result = await _authService.ResendVerificationEmailAsync(dto.Email);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Resend Failed",
+                    Detail = result.Error,
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
+            return Ok(new { message = "Verification email sent (if account exists)." });
+        }
+
+        /// <summary>
+        /// Change password for authenticated user
+        /// </summary>
+        [HttpPost("change-password")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value 
+                           ?? User.FindFirst("sub")?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim) || !long.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized("User ID not found in token.");
+            }
+
+            var result = await _authService.ChangePasswordAsync(userId, dto);
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Password Change Failed",
+                    Detail = result.Error,
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
+            return Ok(new { message = "Password changed successfully." });
+        }
+
+        /// <summary>
         /// Request a password reset email
         /// </summary>
         [HttpPost("forgot-password")]

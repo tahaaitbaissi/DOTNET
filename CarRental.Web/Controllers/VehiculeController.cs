@@ -14,16 +14,21 @@ namespace CarRental.Web.Controllers
             _httpClientFactory = httpClientFactory;
         }
         
-        public async Task<IActionResult> Index(string? marque, decimal? prixMax)
+        public async Task<IActionResult> Index(string? marque, decimal? prixMax, DateTime? startDate, DateTime? endDate)
         {
             var client = _httpClientFactory.CreateClient("BackendApi");
             
-            // Fix 404: Use 'available' endpoint instead of root 'api/vehicles' which doesn't exist for GetAll.
-            // Providing a default search window of 7 days.
-            var startDate = DateTime.Today.ToString("O");
-            var endDate = DateTime.Today.AddDays(7).ToString("O");
+            // Default to today + 7 days if not specified
+            var start = startDate ?? DateTime.Today;
+            var end = endDate ?? DateTime.Today.AddDays(7);
             
-            var url = $"api/vehicles/available?startDate={startDate}&endDate={endDate}";
+            // Pass filters back to View for UI state
+            ViewBag.StartDate = start.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = end.ToString("yyyy-MM-dd");
+            ViewBag.Marque = marque;
+            ViewBag.PrixMax = prixMax;
+
+            var url = $"api/vehicles/available?startDate={start:O}&endDate={end:O}";
             
              if (prixMax.HasValue)
             {

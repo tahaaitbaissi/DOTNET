@@ -48,6 +48,20 @@ namespace CarRental.Application.Services
             return Result<ClientDto>.Success(MapToDto(client, user));
         }
 
+        public async Task<Result<ClientDto>> GetClientByUserIdAsync(long userId)
+        {
+            var clients = await _unitOfWork.Clients.GetAllAsync();
+            var client = clients.FirstOrDefault(c => c.UserId == userId);
+            
+            if (client == null)
+            {
+                return Result<ClientDto>.Failure("Client not found for this user.");
+            }
+
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            return Result<ClientDto>.Success(MapToDto(client, user));
+        }
+
         public async Task<Result<ClientDto>> UpdateClientAsync(long id, UpdateClientDto dto)
         {
             var client = await _unitOfWork.Clients.GetByIdAsync(id);
@@ -123,6 +137,7 @@ namespace CarRental.Application.Services
                 DriverLicense = client.DriverLicense,
                 LicenseExpiry = client.LicenseExpiry,
                 IsActive = user?.IsActive ?? false,
+                IsEmailVerified = user?.IsEmailVerified ?? false,
                 CreatedAt = client.CreatedAt
             };
         }

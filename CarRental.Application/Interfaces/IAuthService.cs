@@ -30,6 +30,16 @@ namespace CarRental.Application.Interfaces
         Task<Result<bool>> VerifyEmailAsync(VerifyEmailDto dto);
 
         /// <summary>
+        /// Resends verification email
+        /// </summary>
+        Task<Result<bool>> ResendVerificationEmailAsync(string email);
+
+        /// <summary>
+        /// Changes password for authenticated user
+        /// </summary>
+        Task<Result<bool>> ChangePasswordAsync(long userId, ChangePasswordDto dto);
+
+        /// <summary>
         /// Initiates password reset process
         /// </summary>
         Task<Result<bool>> ForgotPasswordAsync(string email);
