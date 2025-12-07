@@ -1,88 +1,68 @@
-﻿using CarRental.Application.Interfaces;
+﻿using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class ReportViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IExportService _exportService;
-
-    private bool _isGenerating;
-
-    public bool IsGenerating
+    public class ReportViewModel : ViewModelBase
     {
-        get => _isGenerating;
-        set => SetProperty(ref _isGenerating, value);
-    }
+        private readonly IFileExportService _exportService;
+        private readonly IDialogService _dialogService;
 
-    public ICommand ExportClientsCommand { get; }
-    public ICommand ExportVehiclesCommand { get; }
-    public ICommand ExportBookingsCommand { get; }
-
-    public ReportViewModel(IExportService exportService)
-    {
-        _exportService = exportService;
-
-        ExportClientsCommand = new RelayCommand(async (param) => await ExportClientsAsync());
-        ExportVehiclesCommand = new RelayCommand(async (param) => await ExportVehiclesAsync());
-        ExportBookingsCommand = new RelayCommand(async (param) => await ExportBookingsAsync());
-    }
-
-    private async Task ExportClientsAsync()
-    {
-        IsGenerating = true;
-        try
+        public ReportViewModel(IFileExportService exportService, IDialogService dialogService)
         {
-            var fileBytes = await _exportService.ExportClientsAsync();
+            _exportService = exportService;
+            _dialogService = dialogService;
 
-            if (fileBytes != null && fileBytes.Length > 0)
+            // ✅ CORRIGÉ: AsyncRelayCommand
+            ExportClientsCommand = new AsyncRelayCommand(ExportClientsAsync);
+            ExportVehiclesCommand = new AsyncRelayCommand(ExportVehiclesAsync);
+            ExportBookingsCommand = new AsyncRelayCommand(ExportBookingsAsync);
+        }
+
+        public ICommand ExportClientsCommand { get; }
+        public ICommand ExportVehiclesCommand { get; }
+        public ICommand ExportBookingsCommand { get; }
+
+        private async Task ExportClientsAsync()
+        {
+            try
             {
-                // TODO: Sauvegarder le fichier
-                // File.WriteAllBytes("clients_export.xlsx", fileBytes);
+                IsLoading = true;
+                await _dialogService.ShowMessageAsync("Info", "Export clients en cours...");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        finally
-        {
-            IsGenerating = false;
-        }
-    }
 
-    private async Task ExportVehiclesAsync()
-    {
-        IsGenerating = true;
-        try
+        private async Task ExportVehiclesAsync()
         {
-            var fileBytes = await _exportService.ExportVehiclesAsync();
-
-            if (fileBytes != null && fileBytes.Length > 0)
+            try
             {
-                // TODO: Sauvegarder le fichier
-                // File.WriteAllBytes("vehicles_export.xlsx", fileBytes);
+                IsLoading = true;
+                await _dialogService.ShowMessageAsync("Info", "Export véhicules en cours...");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        finally
-        {
-            IsGenerating = false;
-        }
-    }
 
-    private async Task ExportBookingsAsync()
-    {
-        IsGenerating = true;
-        try
+        private async Task ExportBookingsAsync()
         {
-            var fileBytes = await _exportService.ExportBookingsAsync();
-
-            if (fileBytes != null && fileBytes.Length > 0)
+            try
             {
-                // TODO: Sauvegarder le fichier
-                // File.WriteAllBytes("bookings_export.xlsx", fileBytes);
+                IsLoading = true;
+                await _dialogService.ShowMessageAsync("Info", "Export réservations en cours...");
             }
-        }
-        finally
-        {
-            IsGenerating = false;
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 }

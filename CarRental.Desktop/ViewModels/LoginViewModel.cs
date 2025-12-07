@@ -1,103 +1,77 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class LoginViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IAuthService _authService;
-
-    private string _email = string.Empty;
-    private string _password = string.Empty;
-    private bool _rememberMe;
-    private bool _isLoggingIn;
-
-    public string Email
+    public class LoginViewModel : ViewModelBase
     {
-        get => _email;
-        set => SetProperty(ref _email, value);
-    }
+        private readonly IDialogService _dialogService;
+        private readonly INavigationService _navigationService; 
 
-    public string Password
-    {
-        get => _password;
-        set => SetProperty(ref _password, value);
-    }
+        private string _email = string.Empty;
+        private string _password = string.Empty;
 
-    public bool RememberMe
-    {
-        get => _rememberMe;
-        set => SetProperty(ref _rememberMe, value);
-    }
-
-    public bool IsLoggingIn
-    {
-        get => _isLoggingIn;
-        set => SetProperty(ref _isLoggingIn, value);
-    }
-
-    public ICommand LoginCommand { get; }
-    public ICommand ForgotPasswordCommand { get; }
-
-    public LoginViewModel(IAuthService authService)
-    {
-        _authService = authService;
-
-        LoginCommand = new RelayCommand(async (param) => await LoginAsync(),
-            (param) => !IsLoggingIn && !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(Password));
-
-        ForgotPasswordCommand = new RelayCommand(async (param) => await ForgotPasswordAsync());
-    }
-
-    private async Task LoginAsync()
-    {
-        IsLoggingIn = true;
-
-        try
+        public LoginViewModel(IDialogService dialogService, INavigationService navigationService)
         {
-            var loginDto = new LoginDto(Email, Password);
-            var result = await _authService.LoginAsync(loginDto);
+            _dialogService = dialogService;
+            _navigationService = navigationService;
 
-            if (result.IsSuccess && result.Value != null)
+            LoginCommand = new AsyncRelayCommand(LoginAsync, CanLogin);
+        }
+
+        public string Email
+        {
+            get => _email;
+            set => SetProperty(ref _email, value);
+        }
+
+        public string Password
+        {
+            get => _password;
+            set => SetProperty(ref _password, value);
+        }
+
+        public ICommand LoginCommand { get; }
+
+        private bool CanLogin()
+        {
+            return !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(Password);
+        }
+
+        private async Task LoginAsync()
+        {
+            try
             {
-                // TODO: Stocker le token
-                // AppState.CurrentUser = result.Value.User;
-                // AppState.Token = result.Value.Token;
+                IsLoading = true;
+                ClearError();
 
-                // TODO: Naviguer vers le dashboard
-                Console.WriteLine("Connexion réussie !");
+                await Task.Delay(500);
+
+                if (Email == "admin@test.com" && Password == "admin")
+                {
+                    SessionManager.Login(Email, "Admin");
+
+                    _navigationService.NavigateTo<DashboardViewModel>();
+                }
+                else
+                {
+                    ErrorMessage = "Email ou mot de passe incorrect";
+                    await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Échec connexion: {result.Error}");
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-        }
-        finally
-        {
-            IsLoggingIn = false;
-        }
-    }
-
-    private async Task ForgotPasswordAsync()
-    {
-        if (string.IsNullOrWhiteSpace(Email))
-        {
-            // TODO: Afficher message
-            return;
-        }
-
-        var result = await _authService.ForgotPasswordAsync(Email);
-
-        if (result.IsSuccess && result.Value)
-        {
-            Console.WriteLine("Email de réinitialisation envoyé");
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 }

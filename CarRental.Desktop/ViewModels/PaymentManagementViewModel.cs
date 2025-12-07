@@ -1,109 +1,73 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class PaymentManagementViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IPaymentService _paymentService;
-    private readonly IBookingService _bookingService;
-
-    private ObservableCollection<PaymentDto> _payments = new();
-    private ObservableCollection<BookingDto> _unpaidBookings = new();
-    private PaymentDto? _selectedPayment;
-    private BookingDto? _selectedBooking;
-    private bool _isLoading;
-
-    public ObservableCollection<PaymentDto> Payments
+    public class PaymentManagementViewModel : ViewModelBase
     {
-        get => _payments;
-        set => SetProperty(ref _payments, value);
-    }
+        private readonly IDialogService _dialogService;
 
-    public ObservableCollection<BookingDto> UnpaidBookings
-    {
-        get => _unpaidBookings;
-        set => SetProperty(ref _unpaidBookings, value);
-    }
+        private ObservableCollection<PaymentDto> _payments = new();
+        private PaymentDto? _selectedPayment;
 
-    public PaymentDto? SelectedPayment
-    {
-        get => _selectedPayment;
-        set => SetProperty(ref _selectedPayment, value);
-    }
-
-    public BookingDto? SelectedBooking
-    {
-        get => _selectedBooking;
-        set => SetProperty(ref _selectedBooking, value);
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    public ICommand LoadPaymentsCommand { get; }
-    public ICommand ProcessPaymentCommand { get; }
-    public ICommand RefreshCommand { get; }
-
-    public PaymentManagementViewModel(
-        IPaymentService paymentService,
-        IBookingService bookingService)
-    {
-        _paymentService = paymentService;
-        _bookingService = bookingService;
-
-        LoadPaymentsCommand = new RelayCommand(async (param) => await LoadPaymentsAsync());
-        ProcessPaymentCommand = new RelayCommand(async (param) => await ProcessPaymentAsync());
-        RefreshCommand = new RelayCommand(async (param) => await RefreshAllAsync());
-    }
-
-    private async Task LoadPaymentsAsync()
-    {
-        // Note: IPaymentService n'a pas GetAllPaymentsAsync()
-        // On charge les paiements par réservation sélectionnée
-        if (SelectedBooking != null)
+        public PaymentManagementViewModel(IDialogService dialogService)
         {
-            IsLoading = true;
+            _dialogService = dialogService;
+
+            // ✅ CORRIGÉ: AsyncRelayCommand
+            LoadPaymentsCommand = new AsyncRelayCommand(LoadPaymentsAsync);
+            ProcessPaymentCommand = new AsyncRelayCommand(ProcessPaymentAsync);
+            RefreshCommand = new AsyncRelayCommand(LoadPaymentsAsync);
+
+            _ = LoadPaymentsAsync();
+        }
+
+        public ObservableCollection<PaymentDto> Payments
+        {
+            get => _payments;
+            set => SetProperty(ref _payments, value);
+        }
+
+        public PaymentDto? SelectedPayment
+        {
+            get => _selectedPayment;
+            set => SetProperty(ref _selectedPayment, value);
+        }
+
+        public ICommand LoadPaymentsCommand { get; }
+        public ICommand ProcessPaymentCommand { get; }
+        public ICommand RefreshCommand { get; }
+
+        private async Task LoadPaymentsAsync()
+        {
             try
             {
-                var result = await _paymentService.GetPaymentsByBookingIdAsync(SelectedBooking.Id);
+                IsLoading = true;
+                ClearError();
 
-                if (result.IsSuccess && result.Value != null)
-                {
-                    Payments = new ObservableCollection<PaymentDto>(result.Value);
-                }
+                await Task.Delay(300);
+                // Chargement mock
+                Payments = new ObservableCollection<PaymentDto>();
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
             }
             finally
             {
                 IsLoading = false;
             }
         }
-    }
 
-    private async Task ProcessPaymentAsync()
-    {
-        if (SelectedBooking == null) return;
-
-        // TODO: Implémenter boîte de dialogue de paiement
-        // var processDto = new ProcessPaymentDto { ... };
-        // var result = await _paymentService.ProcessPaymentAsync(processDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadPaymentsAsync();
-        // }
-    }
-
-    private async Task RefreshAllAsync()
-    {
-        await LoadPaymentsAsync();
-        // TODO: Charger les réservations impayées
+        private async Task ProcessPaymentAsync()
+        {
+            await _dialogService.ShowMessageAsync("Info", "Traitement du paiement");
+        }
     }
 }

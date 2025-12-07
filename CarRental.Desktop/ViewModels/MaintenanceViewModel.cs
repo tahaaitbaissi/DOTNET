@@ -1,112 +1,148 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
-using CarRental.Core.Entities;
+﻿using CarRental.Core.Entities;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class MaintenanceViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IMaintenanceService _maintenanceService;
-
-    private ObservableCollection<Maintenance> _activeMaintenances = new();
-    private ObservableCollection<Notification> _alerts = new();
-    private bool _isLoading;
-
-    public ObservableCollection<Maintenance> ActiveMaintenances
+    public class MaintenanceViewModel : ViewModelBase
     {
-        get => _activeMaintenances;
-        set => SetProperty(ref _activeMaintenances, value);
-    }
+        private readonly IDialogService _dialogService;
 
-    public ObservableCollection<Notification> Alerts
-    {
-        get => _alerts;
-        set => SetProperty(ref _alerts, value);
-    }
+        private ObservableCollection<Maintenance> _activeMaintenances = new();
+        private ObservableCollection<Notification> _alerts = new();
 
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    public ICommand LoadMaintenancesCommand { get; }
-    public ICommand LoadAlertsCommand { get; }
-    public ICommand ScheduleMaintenanceCommand { get; }
-    public ICommand CheckAlertsCommand { get; }
-    public ICommand RefreshCommand { get; }
-
-    public MaintenanceViewModel(IMaintenanceService maintenanceService)
-    {
-        _maintenanceService = maintenanceService;
-
-        LoadMaintenancesCommand = new RelayCommand(async (param) => await LoadMaintenancesAsync());
-        LoadAlertsCommand = new RelayCommand(async (param) => await LoadAlertsAsync());
-        ScheduleMaintenanceCommand = new RelayCommand(async (param) => await ScheduleMaintenanceAsync());
-        CheckAlertsCommand = new RelayCommand(async (param) => await CheckAlertsAsync());
-        RefreshCommand = new RelayCommand(async (param) => await RefreshAllAsync());
-
-        LoadMaintenancesCommand.Execute(null);
-        LoadAlertsCommand.Execute(null);
-    }
-
-    private async Task LoadMaintenancesAsync()
-    {
-        IsLoading = true;
-        try
+        public MaintenanceViewModel(IDialogService dialogService)
         {
-            var result = await _maintenanceService.GetActiveMaintenancesAsync();
+            _dialogService = dialogService;
 
-            if (result.IsSuccess && result.Value != null)
+            LoadMaintenancesCommand = new AsyncRelayCommand(LoadMaintenancesAsync);
+            LoadAlertsCommand = new AsyncRelayCommand(LoadAlertsAsync);
+            ScheduleMaintenanceCommand = new AsyncRelayCommand(ScheduleMaintenanceAsync);
+            CheckAlertsCommand = new AsyncRelayCommand(CheckAlertsAsync);
+            RefreshCommand = new AsyncRelayCommand(RefreshAllAsync);
+
+            _ = LoadMaintenancesAsync();
+            _ = LoadAlertsAsync();
+        }
+
+        public ObservableCollection<Maintenance> ActiveMaintenances
+        {
+            get => _activeMaintenances;
+            set => SetProperty(ref _activeMaintenances, value);
+        }
+
+        public ObservableCollection<Notification> Alerts
+        {
+            get => _alerts;
+            set => SetProperty(ref _alerts, value);
+        }
+
+        public ICommand LoadMaintenancesCommand { get; }
+        public ICommand LoadAlertsCommand { get; }
+        public ICommand ScheduleMaintenanceCommand { get; }
+        public ICommand CheckAlertsCommand { get; }
+        public ICommand RefreshCommand { get; }
+
+        private async Task LoadMaintenancesAsync()
+        {
+            try
             {
-                ActiveMaintenances = new ObservableCollection<Maintenance>(result.Value);
+                IsLoading = true;
+                ClearError();
+                await Task.Delay(300);
+
+                var mockMaintenances = new ObservableCollection<Maintenance>();
+
+                var maintenance1 = new Maintenance
+                {
+                    VehicleId = 1,
+                    Type = "Routine",
+                    StartDate = DateTime.Now,
+                    Details = "Vidange",
+                    Cost = 150.00m
+                };
+
+                var maintenance2 = new Maintenance
+                {
+                    VehicleId = 2,
+                    Type = "Repair",
+                    StartDate = DateTime.Now.AddDays(-5),
+                    Details = "Réparation freins",
+                    Cost = 350.00m
+                };
+
+                mockMaintenances.Add(maintenance1);
+                mockMaintenances.Add(maintenance2);
+
+                ActiveMaintenances = mockMaintenances;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowErrorAsync("Erreur", ErrorMessage);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        finally
+
+        private async Task LoadAlertsAsync()
         {
-            IsLoading = false;
+            try
+            {
+                await Task.Delay(200);
+
+                var mockAlerts = new ObservableCollection<Notification>();
+
+                var alert1 = new Notification
+                {
+                    Title = "Maintenance requise",
+                    Body = "Véhicule #1 nécessite une révision",
+                    Type = "Warning",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                var alert2 = new Notification
+                {
+                    Title = "Assurance à renouveler",
+                    Body = "Véhicule #3 - Assurance expire dans 30 jours",
+                    Type = "Info",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                };
+
+                mockAlerts.Add(alert1);
+                mockAlerts.Add(alert2);
+
+                Alerts = mockAlerts;
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync("Erreur", ex.Message);
+            }
         }
-    }
 
-    private async Task LoadAlertsAsync()
-    {
-        var result = await _maintenanceService.GetAdminAlertsAsync();
-
-        if (result.IsSuccess && result.Value != null)
+        private async Task ScheduleMaintenanceAsync()
         {
-            Alerts = new ObservableCollection<Notification>(result.Value);
+            await _dialogService.ShowInfoAsync("Info", "Planification de maintenance (non implémenté)");
         }
-    }
 
-    private async Task ScheduleMaintenanceAsync()
-    {
-        // TODO: Implémenter boîte de dialogue de planification
-        // var createDto = new CreateMaintenanceDto { ... };
-        // var result = await _maintenanceService.ScheduleMaintenanceAsync(createDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadMaintenancesAsync();
-        // }
-    }
-
-    private async Task CheckAlertsAsync()
-    {
-        var result = await _maintenanceService.CheckAndGenerateAlertsAsync();
-
-        if (result.IsSuccess)
+        private async Task CheckAlertsAsync()
         {
             await LoadAlertsAsync();
+            await _dialogService.ShowInfoAsync("Info", $"{Alerts.Count} alertes trouvées");
         }
-    }
 
-    private async Task RefreshAllAsync()
-    {
-        await LoadMaintenancesAsync();
-        await LoadAlertsAsync();
+        private async Task RefreshAllAsync()
+        {
+            await LoadMaintenancesAsync();
+            await LoadAlertsAsync();
+        }
     }
 }

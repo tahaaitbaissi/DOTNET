@@ -1,149 +1,108 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class VehicleManagementViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IVehicleService _vehicleService;
-    private readonly IVehicleTypeService _vehicleTypeService;
-
-    private ObservableCollection<VehicleDto> _vehicles = new();
-    private ObservableCollection<VehicleTypeDto> _vehicleTypes = new();
-    private VehicleDto? _selectedVehicle;
-    private bool _isLoading;
-
-    public ObservableCollection<VehicleDto> Vehicles
+    public class VehicleManagementViewModel : ViewModelBase
     {
-        get => _vehicles;
-        set => SetProperty(ref _vehicles, value);
-    }
+        private readonly IDialogService _dialogService;
 
-    public ObservableCollection<VehicleTypeDto> VehicleTypes
-    {
-        get => _vehicleTypes;
-        set => SetProperty(ref _vehicleTypes, value);
-    }
+        private ObservableCollection<VehicleDto> _vehicles = new();
+        private VehicleDto? _selectedVehicle;
 
-    public VehicleDto? SelectedVehicle
-    {
-        get => _selectedVehicle;
-        set => SetProperty(ref _selectedVehicle, value);
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    public ICommand LoadVehiclesCommand { get; }
-    public ICommand LoadVehicleTypesCommand { get; }
-    public ICommand AddVehicleCommand { get; }
-    public ICommand UpdateVehicleCommand { get; }
-    public ICommand DeleteVehicleCommand { get; }
-    public ICommand RefreshCommand { get; }
-
-    public VehicleManagementViewModel(
-        IVehicleService vehicleService,
-        IVehicleTypeService vehicleTypeService)
-    {
-        _vehicleService = vehicleService;
-        _vehicleTypeService = vehicleTypeService;
-
-        LoadVehiclesCommand = new RelayCommand(async (param) => await LoadVehiclesAsync());
-        LoadVehicleTypesCommand = new RelayCommand(async (param) => await LoadVehicleTypesAsync());
-        AddVehicleCommand = new RelayCommand(async (param) => await AddVehicleAsync());
-        UpdateVehicleCommand = new RelayCommand(async (param) => await UpdateVehicleAsync());
-        DeleteVehicleCommand = new RelayCommand(async (param) => await DeleteVehicleAsync());
-        RefreshCommand = new RelayCommand(async (param) => await RefreshAllAsync());
-
-        LoadVehiclesCommand.Execute(null);
-        LoadVehicleTypesCommand.Execute(null);
-    }
-
-    private async Task LoadVehiclesAsync()
-    {
-        IsLoading = true;
-        try
+        public VehicleManagementViewModel(IDialogService dialogService)
         {
-            var result = await _vehicleService.GetAllVehiclesAsync();
+            _dialogService = dialogService;
 
-            if (result.IsSuccess && result.Value != null)
+            // ✅ CORRIGÉ: AsyncRelayCommand
+            LoadVehiclesCommand = new AsyncRelayCommand(LoadVehiclesAsync);
+            AddVehicleCommand = new AsyncRelayCommand(AddVehicleAsync);
+            UpdateVehicleCommand = new AsyncRelayCommand(UpdateVehicleAsync, CanUpdateVehicle);
+            DeleteVehicleCommand = new AsyncRelayCommand(DeleteVehicleAsync, CanDeleteVehicle);
+            RefreshCommand = new AsyncRelayCommand(LoadVehiclesAsync);
+
+            _ = LoadVehiclesAsync();
+        }
+
+        public ObservableCollection<VehicleDto> Vehicles
+        {
+            get => _vehicles;
+            set => SetProperty(ref _vehicles, value);
+        }
+
+        public VehicleDto? SelectedVehicle
+        {
+            get => _selectedVehicle;
+            set => SetProperty(ref _selectedVehicle, value);
+        }
+
+        public ICommand LoadVehiclesCommand { get; }
+        public ICommand AddVehicleCommand { get; }
+        public ICommand UpdateVehicleCommand { get; }
+        public ICommand DeleteVehicleCommand { get; }
+        public ICommand RefreshCommand { get; }
+
+        private bool CanUpdateVehicle() => SelectedVehicle != null;
+        private bool CanDeleteVehicle() => SelectedVehicle != null;
+
+        private async Task LoadVehiclesAsync()
+        {
+            try
             {
-                Vehicles = new ObservableCollection<VehicleDto>(result.Value);
+                IsLoading = true;
+                ClearError();
+
+                // Données MOCK
+                await Task.Delay(300);
+                var mockVehicles = new[]
+                {
+                    new VehicleDto { Id = 1, Make = "Toyota", Model = "Corolla", Year = 2023, Color = "Blanc", LicensePlate = "AB-123-CD", Status = "Available", DailyRate = 50 },
+                    new VehicleDto { Id = 2, Make = "Renault", Model = "Clio", Year = 2022, Color = "Rouge", LicensePlate = "EF-456-GH", Status = "Rented", DailyRate = 45 },
+                    new VehicleDto { Id = 3, Make = "Peugeot", Model = "308", Year = 2024, Color = "Noir", LicensePlate = "IJ-789-KL", Status = "Available", DailyRate = 55 }
+                };
+
+                Vehicles = new ObservableCollection<VehicleDto>(mockVehicles);
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Erreur véhicules: {result.Error}");
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        catch (Exception ex)
+
+        private async Task AddVehicleAsync()
         {
-            Console.WriteLine($"Exception: {ex.Message}");
+            await _dialogService.ShowMessageAsync("Info", "Ajout de véhicule (non implémenté)");
         }
-        finally
+
+        private async Task UpdateVehicleAsync()
         {
-            IsLoading = false;
+            if (SelectedVehicle == null) return;
+            await _dialogService.ShowMessageAsync("Info", $"Modification de {SelectedVehicle.DisplayName}");
         }
-    }
 
-    private async Task LoadVehicleTypesAsync()
-    {
-        var result = await _vehicleTypeService.GetAllVehicleTypesAsync();
-
-        if (result.IsSuccess && result.Value != null)
+        private async Task DeleteVehicleAsync()
         {
-            VehicleTypes = new ObservableCollection<VehicleTypeDto>(result.Value);
+            if (SelectedVehicle == null) return;
+
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Confirmation",
+                $"Supprimer {SelectedVehicle.DisplayName} ?");
+
+            if (confirmed)
+            {
+                Vehicles.Remove(SelectedVehicle);
+                await _dialogService.ShowMessageAsync("Succès", "Véhicule supprimé");
+            }
         }
-    }
-
-    private async Task AddVehicleAsync()
-    {
-        // TODO: Implémenter boîte de dialogue de création
-        // var createDto = new CreateVehicleDto { ... };
-        // var result = await _vehicleService.AddVehicleAsync(createDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadVehiclesAsync();
-        // }
-    }
-
-    private async Task UpdateVehicleAsync()
-    {
-        if (SelectedVehicle == null) return;
-
-        // TODO: Implémenter boîte de dialogue de modification
-        // var updateDto = new UpdateVehicleDto { ... };
-        // var result = await _vehicleService.UpdateVehicleAsync(SelectedVehicle.Id, updateDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadVehiclesAsync();
-        // }
-    }
-
-    private async Task DeleteVehicleAsync()
-    {
-        if (SelectedVehicle == null) return;
-
-        // TODO: Implémenter boîte de dialogue de confirmation
-        // var result = await _vehicleService.DeleteVehicleAsync(SelectedVehicle.Id);
-
-        // if (result.IsSuccess && result.Value)
-        // {
-        //     await LoadVehiclesAsync();
-        // }
-    }
-
-    private async Task RefreshAllAsync()
-    {
-        await LoadVehiclesAsync();
-        await LoadVehicleTypesAsync();
     }
 }

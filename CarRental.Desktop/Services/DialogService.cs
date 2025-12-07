@@ -4,6 +4,9 @@ using System.Windows;
 
 namespace CarRental.Desktop.Services
 {
+    /// <summary>
+    /// Implémentation complète du service de dialogue
+    /// </summary>
     public class DialogService : IDialogService
     {
         public Task ShowMessageAsync(string title, string message)
@@ -38,7 +41,6 @@ namespace CarRental.Desktop.Services
 
         public Task<string?> ShowFolderPickerAsync()
         {
-            // Utilisez OpenFileDialog comme alternative
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 ValidateNames = false,
@@ -50,6 +52,31 @@ namespace CarRental.Desktop.Services
             var result = dialog.ShowDialog();
             return Task.FromResult(result == true ?
                 System.IO.Path.GetDirectoryName(dialog.FileName) : null);
+        }
+
+
+        public Task ShowInfoAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return Task.CompletedTask;
+        }
+
+        public Task ShowErrorAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+            return Task.CompletedTask;
+        }
+
+        public Task ShowSuccessAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return Task.CompletedTask;
+        }
+
+        public Task ShowWarningAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            return Task.CompletedTask;
         }
     }
 }

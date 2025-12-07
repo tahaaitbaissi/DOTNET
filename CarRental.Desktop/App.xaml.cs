@@ -1,15 +1,15 @@
-﻿using CarRental.Desktop.Services;
+﻿using CarRental.Application.Interfaces; // Assure-toi d'avoir les interfaces ici
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels;
-using CarRental.Desktop.ViewModels.Base; // N'oublie pas ce namespace
+using CarRental.Desktop.ViewModels.Base;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows;
 
-namespace CarRental.Desktop // Assure-toi du namespace
+namespace CarRental.Desktop
 {
     public partial class App : System.Windows.Application
     {
-        // On expose les services si besoin pour le debug
         public IServiceProvider Services { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -18,39 +18,38 @@ namespace CarRental.Desktop // Assure-toi du namespace
 
             var services = new ServiceCollection();
 
-            // --- 1. SERVICES D'INFRASTRUCTURE (Toi) ---
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IFileExportService, FileExportService>();
-
-            // Ajout des services manquants vus dans ton arborescence
             services.AddSingleton<IDataImportService, DataImportService>();
             services.AddSingleton<IEmailNotificationService, EmailNotificationService>();
             services.AddSingleton<IPrintService, PrintService>();
             services.AddSingleton<IReportGeneratorService, ReportGeneratorService>();
 
-            // --- 2. GESTION DE L'ÉTAT (CRUCIAL) ---
-            // Sans ça, le LoginViewModel ne pourra pas stocker l'utilisateur
-            services.AddSingleton<SessionManager>();
+            // --- 2. GESTION DE L'ÉTAT ---
             services.AddSingleton<AppState>();
 
-            // --- 3. MOTEUR DE NAVIGATION (CRUCIAL) ---
-            // Cette ligne permet au NavigationService de créer n'importe quel ViewModel demandé
+            // --- 3. MOTEUR DE NAVIGATION ---
+            // Factory pour créer les ViewModels à la volée
             services.AddSingleton<Func<Type, ViewModelBase>>(provider =>
                 viewModelType => (ViewModelBase)provider.GetRequiredService(viewModelType));
 
-            // --- 4. SERVICES BACKEND (Membre 4) ---
-            // Mock ou implémentation réelle nécessaire pour que LoginViewModel ne plante pas
-            // Si tu n'as pas encore le code de Membre 4, commente ces lignes, 
-            // MAIS tes ViewModels devront gérer l'absence de service (null check)
-            services.AddHttpClient();
-            // services.AddScoped<IClientService, ClientService>();
-            // services.AddScoped<IAuthService, AuthService>(); 
+            // --- 4. SERVICES MÉTIERS (MOCKS TEMPORAIRES) ---
+            // IMPORTANT : Tes ViewModels ont besoin de ces interfaces dans leurs constructeurs.
+            // On enregistre tes classes "Client" qui contiennent pour l'instant les fausses données.
 
-            // --- 5. ENREGISTREMENT DES VIEWMODELS ---
-            services.AddSingleton<MainWindowViewModel>(); // Le chef d'orchestre
+            services.AddSingleton<IBookingServiceClient, BookingServiceClient>();
 
-            // Les pages (Transient = nouvelle instance à chaque visite)
+            // Pour IAuthService, IClientService, etc., si tu n'as pas encore les classes,
+            // tu dois soit créer des mocks vides, soit utiliser BookingServiceClient s'il fait tout pour l'instant.
+            // EXEMPLE (à décommenter quand tu auras créé les classes Mocks) :
+            // services.AddSingleton<IClientService, ClientServiceMock>();
+            // services.AddSingleton<IVehicleService, VehicleServiceMock>();
+            // services.AddSingleton<IAuthService, AuthServiceMock>();
+
+            // --- 5. VIEWMODELS ---
+            services.AddSingleton<MainWindowViewModel>();
+
             services.AddTransient<LoginViewModel>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<ClientManagementViewModel>();
@@ -61,17 +60,21 @@ namespace CarRental.Desktop // Assure-toi du namespace
             services.AddTransient<ReportViewModel>();
             services.AddTransient<SettingsViewModel>();
 
+            // --- 6. FENÊTRES (VIEWS) ---
+            // On enregistre MainWindow pour pouvoir lui injecter des choses si besoin plus tard
+            services.AddSingleton<MainWindow>();
+
             // --- CONSTRUCTION ---
             Services = services.BuildServiceProvider();
 
-            // Initialisation du ServiceLocator
-            // (Si ta classe ServiceLocator a une propriété statique 'Provider')
-            ServiceLocator.Provider = Services;
+            // Initialisation du ServiceLocator (pour les cas où l'injection n'est pas possible)
+            ServiceLocator.Initialize(Services);
 
             // --- DÉMARRAGE ---
-            var mainWindow = new MainWindow();
+            // On récupère la MainWindow depuis le DI (plus propre que 'new MainWindow()')
+            var mainWindow = Services.GetRequiredService<MainWindow>();
 
-            // On injecte le DataContext pour que le Binding fonctionne
+            // Assignation du DataContext
             mainWindow.DataContext = Services.GetRequiredService<MainWindowViewModel>();
 
             mainWindow.Show();

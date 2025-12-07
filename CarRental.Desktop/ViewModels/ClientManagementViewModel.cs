@@ -1,172 +1,138 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class ClientManagementViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IClientService _clientService;
-
-    private ObservableCollection<ClientDto> _clients = new();
-    private ClientDto? _selectedClient;
-    private string _searchText = string.Empty;
-    private bool _isLoading;
-
-    public ObservableCollection<ClientDto> Clients
+    public class ClientManagementViewModel : ViewModelBase
     {
-        get => _clients;
-        set => SetProperty(ref _clients, value);
-    }
+        private readonly IDialogService _dialogService;
 
-    public ClientDto? SelectedClient
-    {
-        get => _selectedClient;
-        set => SetProperty(ref _selectedClient, value);
-    }
+        private ObservableCollection<ClientDto> _clients = new();
+        private ObservableCollection<ClientDto> _allClients = new();
+        private ClientDto? _selectedClient;
+        private string _searchText = string.Empty;
 
-    public string SearchText
-    {
-        get => _searchText;
-        set
+        public ClientManagementViewModel(IDialogService dialogService)
         {
-            if (SetProperty(ref _searchText, value))
-            {
-                FilterClients();
-            }
+            _dialogService = dialogService;
+            LoadClientsCommand = new AsyncRelayCommand(LoadClientsAsync);
+            UpdateClientCommand = new AsyncRelayCommand(UpdateClientAsync, CanUpdateClient);
+            DeleteClientCommand = new AsyncRelayCommand(DeleteClientAsync, CanDeleteClient);
+            SearchCommand = new RelayCommand(_ => FilterClients());
+            ClearSearchCommand = new RelayCommand(_ => ClearSearch());
+
+            _ = LoadClientsAsync();
         }
-    }
 
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    // Propriétés pour l'affichage détaillé
-    public string SelectedClientName => SelectedClient?.FullName ?? "Aucun client sélectionné";
-    public string SelectedClientEmail => SelectedClient?.Email ?? "";
-    public string SelectedClientPhone => SelectedClient?.Phone ?? "";
-    public string SelectedClientLicense => SelectedClient?.DriverLicense ?? "";
-
-    public ICommand LoadClientsCommand { get; }
-    public ICommand UpdateClientCommand { get; }
-    public ICommand DeleteClientCommand { get; }
-    public ICommand ClearSearchCommand { get; }
-    public ICommand ExportClientsCommand { get; }
-
-    public ClientManagementViewModel(IClientService clientService)
-    {
-        _clientService = clientService;
-
-        LoadClientsCommand = new RelayCommand(async (param) => await LoadClientsAsync());
-        UpdateClientCommand = new RelayCommand(async (param) => await UpdateClientAsync());
-        DeleteClientCommand = new RelayCommand(async (param) => await DeleteClientAsync());
-        ClearSearchCommand = new RelayCommand((param) => ClearSearch());
-        ExportClientsCommand = new RelayCommand(async (param) => await ExportClientsAsync());
-
-        LoadClientsCommand.Execute(null);
-    }
-
-    private async Task LoadClientsAsync()
-    {
-        IsLoading = true;
-        try
+        public ObservableCollection<ClientDto> Clients
         {
-            var result = await _clientService.GetAllClientsAsync();
+            get => _clients;
+            set => SetProperty(ref _clients, value);
+        }
 
-            if (result.IsSuccess && result.Value != null)
+        public ClientDto? SelectedClient
+        {
+            get => _selectedClient;
+            set => SetProperty(ref _selectedClient, value);
+        }
+
+        public string SearchText
+        {
+            get => _searchText;
+            set
             {
-                Clients = new ObservableCollection<ClientDto>(result.Value);
-
-                if (!string.IsNullOrWhiteSpace(SearchText))
+                if (SetProperty(ref _searchText, value))
                 {
                     FilterClients();
                 }
             }
-            else
+        }
+
+        public ICommand LoadClientsCommand { get; }
+        public ICommand SearchCommand { get; }
+        public ICommand UpdateClientCommand { get; }
+        public ICommand DeleteClientCommand { get; }
+        public ICommand ClearSearchCommand { get; }
+
+        private bool CanUpdateClient() => SelectedClient != null;
+        private bool CanDeleteClient() => SelectedClient != null;
+
+        private async Task LoadClientsAsync()
+        {
+            try
             {
-                Console.WriteLine($"Erreur: {result.Error}");
+                IsLoading = true;
+                ClearError();
+
+                // Données MOCK
+                await Task.Delay(300);
+                var mockClients = new[]
+                {
+                    new ClientDto { Id = 1, FullName = "Jean Dupont", Email = "jean@test.com", Phone = "0612345678", DriverLicense = "DL123", IsActive = true },
+                    new ClientDto { Id = 2, FullName = "Marie Martin", Email = "marie@test.com", Phone = "0687654321", DriverLicense = "DL456", IsActive = true },
+                    new ClientDto { Id = 3, FullName = "Pierre Bernard", Email = "pierre@test.com", Phone = "0698765432", DriverLicense = "DL789", IsActive = true }
+                };
+
+                _allClients = new ObservableCollection<ClientDto>(mockClients);
+                Clients = new ObservableCollection<ClientDto>(_allClients);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
 
-    private void FilterClients()
-    {
-        if (string.IsNullOrWhiteSpace(SearchText))
+        private void FilterClients()
         {
-            LoadClientsCommand.Execute(null);
-            return;
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                Clients = new ObservableCollection<ClientDto>(_allClients);
+                return;
+            }
+
+            var filtered = _allClients.Where(c =>
+                c.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+
+            Clients = new ObservableCollection<ClientDto>(filtered);
         }
 
-        var allClients = _clients.ToList();
-        var filtered = allClients.Where(c =>
-            c.FullName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-            c.Email.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-            c.Phone.Contains(SearchText) ||
-            c.DriverLicense.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+        private void ClearSearch()
+        {
+            SearchText = string.Empty;
+        }
 
-        Clients = new ObservableCollection<ClientDto>(filtered);
-    }
+        private async Task UpdateClientAsync()
+        {
+            if (SelectedClient == null) return;
+            await _dialogService.ShowMessageAsync("Info", $"Modification de {SelectedClient.FullName}");
+        }
 
-    private void ClearSearch()
-    {
-        SearchText = string.Empty;
-        LoadClientsCommand.Execute(null);
-    }
+        private async Task DeleteClientAsync()
+        {
+            if (SelectedClient == null) return;
 
-    private async Task UpdateClientAsync()
-    {
-        if (SelectedClient == null) return;
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Confirmation",
+                $"Supprimer {SelectedClient.FullName} ?");
 
-        // TODO: Implémenter boîte de dialogue de modification
-        // var updateDto = new UpdateClientDto 
-        // {
-        //     // Mapper les propriétés
-        //     FullName = SelectedClient.FullName,
-        //     Email = SelectedClient.Email,
-        //     Phone = SelectedClient.Phone,
-        //     Address = SelectedClient.Address,
-        //     DriverLicense = SelectedClient.DriverLicense,
-        //     LicenseExpiry = SelectedClient.LicenseExpiry
-        // };
-
-        // var result = await _clientService.UpdateClientAsync(SelectedClient.Id, updateDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadClientsAsync();
-        // }
-    }
-
-    private async Task DeleteClientAsync()
-    {
-        if (SelectedClient == null) return;
-
-        // TODO: Implémenter boîte de dialogue de confirmation
-        // var result = await _clientService.DeleteClientAsync(SelectedClient.Id);
-
-        // if (result.IsSuccess && result.Value)
-        // {
-        //     await LoadClientsAsync();
-        // }
-    }
-
-    private async Task ExportClientsAsync()
-    {
-        // TODO: Utiliser IExportService.ExportClientsAsync()
-        Console.WriteLine("Export des clients...");
+            if (confirmed)
+            {
+                _allClients.Remove(SelectedClient);
+                Clients.Remove(SelectedClient);
+                await _dialogService.ShowMessageAsync("Succès", "Client supprimé");
+            }
+        }
     }
 }

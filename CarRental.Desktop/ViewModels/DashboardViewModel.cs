@@ -1,101 +1,88 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class DashboardViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IDashboardService _dashboardService;
-
-    private DashboardDto? _dashboardData;
-    private ObservableCollection<BookingDto> _recentBookings = new();
-    private bool _isLoading;
-
-    public DashboardDto? DashboardData
+    public class DashboardViewModel : ViewModelBase
     {
-        get => _dashboardData;
-        set
+        private readonly IBookingServiceClient _bookingService;
+        private readonly IDialogService _dialogService;
+
+        private DashboardDto? _dashboardData;
+        private ObservableCollection<BookingDto> _recentBookings = new();
+
+        public DashboardViewModel(
+            IBookingServiceClient bookingService,
+            IDialogService dialogService)
         {
-            if (SetProperty(ref _dashboardData, value) && value != null)
+            _bookingService = bookingService;
+            _dialogService = dialogService;
+
+            LoadDashboardCommand = new AsyncRelayCommand(LoadDashboardAsync);
+            RefreshCommand = new AsyncRelayCommand(LoadDashboardAsync);
+
+            // Démarrage asynchrone sans bloquer le constructeur
+            _ = LoadDashboardAsync();
+        }
+
+        public DashboardDto? DashboardData
+        {
+            get => _dashboardData;
+            set
             {
-                RecentBookings = new ObservableCollection<BookingDto>(value.RecentBookings);
+                if (SetProperty(ref _dashboardData, value) && value != null)
+                {
+                    // Sécurité null check
+                    RecentBookings = new ObservableCollection<BookingDto>(value.RecentBookings ?? new());
+
+                    // Notification des propriétés calculées
+                    OnPropertyChanged(nameof(TotalVehicles));
+                    OnPropertyChanged(nameof(AvailableVehicles));
+                    OnPropertyChanged(nameof(TotalRevenue));
+                    OnPropertyChanged(nameof(ActiveBookings));
+                }
             }
         }
-    }
 
-    public ObservableCollection<BookingDto> RecentBookings
-    {
-        get => _recentBookings;
-        set => SetProperty(ref _recentBookings, value);
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    // Propriétés calculées pour binding direct
-    public int AvailableVehicles => DashboardData?.AvailableVehicles ?? 0;
-    public int RentedVehicles => DashboardData?.RentedVehicles ?? 0;
-    public int TotalVehicles => DashboardData?.TotalVehicles ?? 0;
-    public int ActiveBookings => DashboardData?.ActiveBookings ?? 0;
-    public decimal TotalRevenue => DashboardData?.TotalRevenue ?? 0;
-    public decimal MonthlyRevenue => DashboardData?.MonthlyRevenue ?? 0;
-
-    public ICommand LoadDashboardCommand { get; }
-    public ICommand RefreshCommand { get; }
-
-    public DashboardViewModel(IDashboardService dashboardService)
-    {
-        _dashboardService = dashboardService;
-
-        LoadDashboardCommand = new RelayCommand(async (param) => await LoadDashboardAsync());
-        RefreshCommand = new RelayCommand(async (param) => await RefreshDashboardAsync());
-
-        LoadDashboardCommand.Execute(null);
-    }
-
-    private async Task LoadDashboardAsync()
-    {
-        IsLoading = true;
-        try
+        public ObservableCollection<BookingDto> RecentBookings
         {
-            var result = await _dashboardService.GetDashboardDataAsync();
+            get => _recentBookings;
+            set => SetProperty(ref _recentBookings, value);
+        }
 
-            if (result.IsSuccess && result.Value != null)
+        public int TotalVehicles => DashboardData?.TotalVehicles ?? 0;
+        public int AvailableVehicles => DashboardData?.AvailableVehicles ?? 0;
+        public int ActiveBookings => DashboardData?.ActiveBookings ?? 0;
+        public decimal TotalRevenue => DashboardData?.TotalRevenue ?? 0;
+
+        public ICommand LoadDashboardCommand { get; }
+        public ICommand RefreshCommand { get; }
+
+        private async Task LoadDashboardAsync()
+        {
+            try
             {
-                DashboardData = result.Value;
+                IsLoading = true;
+                ClearError();
 
-                // Notifier les propriétés calculées
-                OnPropertyChanged(nameof(AvailableVehicles));
-                OnPropertyChanged(nameof(RentedVehicles));
-                OnPropertyChanged(nameof(TotalVehicles));
-                OnPropertyChanged(nameof(ActiveBookings));
-                OnPropertyChanged(nameof(TotalRevenue));
-                OnPropertyChanged(nameof(MonthlyRevenue));
+                DashboardData = await _bookingService.GetDashboardDataAsync();
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Erreur dashboard: {result.Error}");
+                ErrorMessage = ex.Message;
+                // En production, on évite d'afficher une popup au chargement initial du dashboard
+                // On préfère définir ErrorMessage pour l'afficher dans l'UI
+                System.Diagnostics.Debug.WriteLine($"Erreur Dashboard: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception dashboard: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task RefreshDashboardAsync()
-    {
-        await LoadDashboardAsync();
     }
 }

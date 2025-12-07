@@ -1,162 +1,129 @@
-﻿using CarRental.Application.Common.Models;
-using CarRental.Application.DTOs;
-using CarRental.Application.Interfaces;
+﻿using CarRental.Application.DTOs;
+using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels.Base;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class BookingManagementViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private readonly IBookingService _bookingService;
-    private readonly IClientService _clientService;
-
-    private ObservableCollection<ClientDto> _clients = new();
-    private ObservableCollection<BookingDto> _bookings = new();
-    private ClientDto? _selectedClient;
-    private BookingDto? _selectedBooking;
-    private bool _isLoading;
-
-    public ObservableCollection<ClientDto> Clients
+    public class BookingManagementViewModel : ViewModelBase
     {
-        get => _clients;
-        set => SetProperty(ref _clients, value);
-    }
+        private readonly IBookingServiceClient _bookingService;
+        private readonly IPrintService _printService; // Ajouté
+        private readonly IDialogService _dialogService;
 
-    public ObservableCollection<BookingDto> Bookings
-    {
-        get => _bookings;
-        set => SetProperty(ref _bookings, value);
-    }
+        private ObservableCollection<BookingDto> _bookings = new();
+        private BookingDto? _selectedBooking;
 
-    public ClientDto? SelectedClient
-    {
-        get => _selectedClient;
-        set
+        public BookingManagementViewModel(
+            IBookingServiceClient bookingService,
+            IPrintService printService, // Injection
+            IDialogService dialogService)
         {
-            if (SetProperty(ref _selectedClient, value) && value != null)
+            _bookingService = bookingService;
+            _printService = printService;
+            _dialogService = dialogService;
+
+            LoadBookingsCommand = new AsyncRelayCommand(LoadBookingsAsync);
+            CancelBookingCommand = new AsyncRelayCommand(CancelBookingAsync, CanInteractWithBooking);
+            PrintInvoiceCommand = new AsyncRelayCommand(PrintInvoiceAsync, CanInteractWithBooking); // Ajouté
+            RefreshCommand = new AsyncRelayCommand(LoadBookingsAsync);
+
+            _ = LoadBookingsAsync();
+        }
+
+        public ObservableCollection<BookingDto> Bookings
+        {
+            get => _bookings;
+            set => SetProperty(ref _bookings, value);
+        }
+
+        public BookingDto? SelectedBooking
+        {
+            get => _selectedBooking;
+            set => SetProperty(ref _selectedBooking, value);
+        }
+
+        public ICommand LoadBookingsCommand { get; }
+        public ICommand CancelBookingCommand { get; }
+        public ICommand PrintInvoiceCommand { get; } // Ajouté
+        public ICommand RefreshCommand { get; }
+
+        private bool CanInteractWithBooking() => SelectedBooking != null;
+
+        private async Task LoadBookingsAsync()
+        {
+            try
             {
-                LoadBookingsForClientCommand.Execute(null);
+                IsLoading = true;
+                ClearError();
+
+                // Appel direct car le service retourne List<BookingDto>
+                var bookings = await _bookingService.GetAllBookingsAsync();
+                Bookings = new ObservableCollection<BookingDto>(bookings);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+                await _dialogService.ShowMessageAsync("Erreur", ErrorMessage);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
-    }
 
-    public BookingDto? SelectedBooking
-    {
-        get => _selectedBooking;
-        set => SetProperty(ref _selectedBooking, value);
-    }
-
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    public ICommand LoadClientsCommand { get; }
-    public ICommand LoadBookingsForClientCommand { get; }
-    public ICommand CreateBookingCommand { get; }
-    public ICommand CancelBookingCommand { get; }
-    public ICommand GeneratePdfCommand { get; }
-
-    public BookingManagementViewModel(
-        IBookingService bookingService,
-        IClientService clientService)
-    {
-        _bookingService = bookingService;
-        _clientService = clientService;
-
-        LoadClientsCommand = new RelayCommand(async (param) => await LoadClientsAsync());
-        LoadBookingsForClientCommand = new RelayCommand(async (param) => await LoadBookingsForClientAsync());
-        CreateBookingCommand = new RelayCommand(async (param) => await CreateBookingAsync());
-        CancelBookingCommand = new RelayCommand(async (param) => await CancelBookingAsync());
-        GeneratePdfCommand = new RelayCommand(async (param) => await GeneratePdfAsync());
-
-        LoadClientsCommand.Execute(null);
-    }
-
-    private async Task LoadClientsAsync()
-    {
-        IsLoading = true;
-        try
+        private async Task CancelBookingAsync()
         {
-            var result = await _clientService.GetAllClientsAsync();
+            if (SelectedBooking == null) return;
 
-            if (result.IsSuccess && result.Value != null)
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Confirmation",
+                $"Annuler la réservation #{SelectedBooking.Id} ?");
+
+            if (confirmed)
             {
-                Clients = new ObservableCollection<ClientDto>(result.Value);
-
-                // Sélectionner le premier client par défaut
-                if (Clients.Count > 0)
+                try
                 {
-                    SelectedClient = Clients.First();
+                    IsLoading = true;
+                    await _bookingService.CancelBookingAsync(SelectedBooking.Id);
+                    await LoadBookingsAsync();
+                    await _dialogService.ShowMessageAsync("Succès", "Réservation annulée");
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowMessageAsync("Erreur", ex.Message);
+                }
+                finally
+                {
+                    IsLoading = false;
                 }
             }
         }
-        finally
+
+        private async Task PrintInvoiceAsync()
         {
-            IsLoading = false;
-        }
-    }
+            if (SelectedBooking == null) return;
 
-    private async Task LoadBookingsForClientAsync()
-    {
-        if (SelectedClient == null) return;
-
-        IsLoading = true;
-        try
-        {
-            var result = await _bookingService.GetClientBookingsAsync(SelectedClient.Id);
-
-            if (result.IsSuccess && result.Value != null)
+            try
             {
-                Bookings = new ObservableCollection<BookingDto>(result.Value);
+                IsLoading = true;
+                var success = await _printService.PrintInvoiceAsync(SelectedBooking);
+                if (!success)
+                {
+                    await _dialogService.ShowMessageAsync("Info", "Impression annulée ou échouée");
+                }
             }
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task CreateBookingAsync()
-    {
-        if (SelectedClient == null) return;
-
-        // TODO: Implémenter boîte de dialogue de création
-        // var createDto = new CreateBookingDto(...);
-        // var result = await _bookingService.CreateBookingAsync(createDto);
-
-        // if (result.IsSuccess)
-        // {
-        //     await LoadBookingsForClientAsync();
-        // }
-    }
-
-    private async Task CancelBookingAsync()
-    {
-        if (SelectedBooking == null || SelectedClient == null) return;
-
-        // TODO: Implémenter boîte de dialogue de confirmation
-        // var result = await _bookingService.CancelBookingAsync(SelectedBooking.Id, SelectedClient.Id);
-
-        // if (result.IsSuccess && result.Value)
-        // {
-        //     await LoadBookingsForClientAsync();
-        // }
-    }
-
-    private async Task GeneratePdfAsync()
-    {
-        if (SelectedBooking == null) return;
-
-        var result = await _bookingService.GetBookingPdfAsync(SelectedBooking.Id);
-
-        if (result.IsSuccess && result.Value != null)
-        {
-            // TODO: Sauvegarder le PDF
-            // File.WriteAllBytes("reservation.pdf", result.Value);
+            catch (Exception ex)
+            {
+                await _dialogService.ShowMessageAsync("Erreur", ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 }

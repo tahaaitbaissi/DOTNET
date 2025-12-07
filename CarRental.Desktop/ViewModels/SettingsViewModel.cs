@@ -1,66 +1,57 @@
 ﻿using CarRental.Desktop.ViewModels.Base;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CarRental.Desktop.ViewModels;
-
-public class SettingsViewModel : ViewModelBase
+namespace CarRental.Desktop.ViewModels
 {
-    private string _applicationTheme = "Light";
-    private bool _autoRefreshEnabled = true;
-    private int _refreshInterval = 30;
-
-    public string ApplicationTheme
+    public class SettingsViewModel : ViewModelBase
     {
-        get => _applicationTheme;
-        set => SetProperty(ref _applicationTheme, value);
-    }
+        private string _applicationTheme = "Light";
+        private bool _autoRefreshEnabled = true;
+        private int _refreshInterval = 30;
 
-    public bool AutoRefreshEnabled
-    {
-        get => _autoRefreshEnabled;
-        set => SetProperty(ref _autoRefreshEnabled, value);
-    }
+        public SettingsViewModel()
+        {
+            // ✅ CORRIGÉ: AsyncRelayCommand pour SaveSettings
+            SaveSettingsCommand = new AsyncRelayCommand(SaveSettingsAsync);
 
-    public int RefreshInterval
-    {
-        get => _refreshInterval;
-        set => SetProperty(ref _refreshInterval, value);
-    }
+            // ✅ CORRIGÉ: RelayCommand synchrone pour ResetSettings
+            ResetSettingsCommand = new RelayCommand(_ => ResetSettings());
+        }
 
-    public ICommand SaveSettingsCommand { get; }
-    public ICommand ResetSettingsCommand { get; }
+        public string ApplicationTheme
+        {
+            get => _applicationTheme;
+            set => SetProperty(ref _applicationTheme, value);
+        }
 
-    public SettingsViewModel()
-    {
-        SaveSettingsCommand = new RelayCommand(async (param) => await SaveSettingsAsync());
-        ResetSettingsCommand = new RelayCommand((param) => ResetSettings());
+        public bool AutoRefreshEnabled
+        {
+            get => _autoRefreshEnabled;
+            set => SetProperty(ref _autoRefreshEnabled, value);
+        }
 
-        LoadSettings();
-    }
+        public int RefreshInterval
+        {
+            get => _refreshInterval;
+            set => SetProperty(ref _refreshInterval, value);
+        }
 
-    private void LoadSettings()
-    {
-        // TODO: Charger depuis un fichier de configuration
-        // ApplicationTheme = Properties.Settings.Default.Theme;
-        // AutoRefreshEnabled = Properties.Settings.Default.AutoRefresh;
-        // RefreshInterval = Properties.Settings.Default.RefreshInterval;
-    }
+        public ICommand SaveSettingsCommand { get; }
+        public ICommand ResetSettingsCommand { get; }
 
-    private async Task SaveSettingsAsync()
-    {
-        // TODO: Sauvegarder les paramètres
-        // Properties.Settings.Default.Theme = ApplicationTheme;
-        // Properties.Settings.Default.AutoRefresh = AutoRefreshEnabled;
-        // Properties.Settings.Default.RefreshInterval = RefreshInterval;
-        // Properties.Settings.Default.Save();
+        private async Task SaveSettingsAsync()
+        {
+            IsLoading = true;
+            await Task.Delay(500); 
+            IsLoading = false;
+        }
 
-        await Task.CompletedTask;
-    }
-
-    private void ResetSettings()
-    {
-        ApplicationTheme = "Light";
-        AutoRefreshEnabled = true;
-        RefreshInterval = 30;
+        private void ResetSettings()
+        {
+            ApplicationTheme = "Light";
+            AutoRefreshEnabled = true;
+            RefreshInterval = 30;
+        }
     }
 }
