@@ -1,0 +1,76 @@
+@model IEnumerable<CarRental.Web.Models.Api.VehicleDto>
+
+@{
+    ViewData["Title"] = "Nos Véhicules";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <form method="get" asp-action="Index" class="row p-4 shadow-sm bg-light rounded g-3">
+            <div class="col-md-3">
+                <label for="startDate" class="form-label fw-bold">Date de début</label>
+                <input type="date" class="form-control" id="startDate" name="startDate" value="@ViewBag.StartDate">
+            </div>
+            <div class="col-md-3">
+                <label for="endDate" class="form-label fw-bold">Date de fin</label>
+                <input type="date" class="form-control" id="endDate" name="endDate" value="@ViewBag.EndDate">
+            </div>
+            <div class="col-md-2">
+                <label for="marque" class="form-label fw-bold">Marque</label>
+                <input type="text" class="form-control" id="marque" name="marque" value="@ViewBag.Marque" placeholder="Ex: Toyota">
+            </div>
+            <div class="col-md-2">
+                <label for="prixMax" class="form-label fw-bold">Prix Max / Jour</label>
+                <input type="number" class="form-control" id="prixMax" name="prixMax" value="@ViewBag.PrixMax" placeholder="Max €">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Rechercher</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row">
+        @foreach (var vehicule in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(vehicule.ImageUrl))
+                    {
+                        <img src="@vehicule.ImageUrl" class="card-img-top" alt="@vehicule.Make @vehicule.Model" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span>Pas d'image</span>
+                        </div>
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@vehicule.Make @vehicule.Model</h5>
+                        <p class="card-text">
+                            <strong>Année:</strong> @vehicule.Year<br />
+                            <strong>Places:</strong> @vehicule.Seats<br />
+                            <strong>Couleur:</strong> @vehicule.Color
+                        </p>
+                        <p class="text-success fs-5">
+                            <strong>@vehicule.DailyRate.ToString("C")</strong> / jour
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Details" asp-route-id="@vehicule.Id" class="btn btn-primary w-100">Voir détails</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <p>Aucun véhicule disponible pour le moment.</p>
+    </div>
+}

@@ -1,0 +1,55 @@
+@model CarRental.Web.Models.Api.CreateBookingDto
+@{
+    var vehicle = ViewBag.Vehicle as CarRental.Web.Models.Api.VehicleDto;
+    var totalAmount = (decimal)ViewBag.TotalAmount;
+    var days = (int)ViewBag.Days;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Confirm Your Booking</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Vehicle Details</h5>
+                            <p class="mb-1"><strong>@vehicle.Make @vehicle.Model</strong></p>
+                            <p class="mb-1">@vehicle.Year - @vehicle.Color</p>
+                            <p class="text-muted">@vehicle.DailyRate.ToString("C") / day</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h5>Rental Period</h5>
+                            <p class="mb-1">From: <strong>@Model.StartDate.ToShortDateString()</strong></p>
+                            <p class="mb-1">To: <strong>@Model.EndDate.ToShortDateString()</strong></p>
+                            <p class="text-muted">Duration: @days days</p>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Total Amount</h4>
+                        <h2 class="text-success mb-0">@totalAmount.ToString("C")</h2>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="VehicleId" />
+                        <input type="hidden" asp-for="StartDate" />
+                        <input type="hidden" asp-for="EndDate" />
+                        @* ClientId is set in Controller based on User Session *@
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Confirm Booking</button>
+                            <a asp-controller="Vehicule" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

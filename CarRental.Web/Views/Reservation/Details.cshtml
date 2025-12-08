@@ -1,0 +1,76 @@
+@model CarRental.Web.Models.Api.BookingDto
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Booking Details #@Model.Id</h4>
+                    <span class="badge bg-@(Model.Status == "Confirmed" ? "success" : Model.Status == "Pending" ? "warning" : Model.Status == "Cancelled" ? "danger" : "secondary")">@Model.Status</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted">Vehicle</h6>
+                            <p class="fs-5">@Model.VehicleName</p>
+                        </div>
+                        <div class="col-sm-6 text-end">
+                            <h6 class="text-muted">Total Paid</h6>
+                            <p class="fs-4 text-success fw-bold">@Model.TotalAmount.ToString("C")</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted">Pick-up Date</h6>
+                            <p>@Model.StartDate.ToLongDateString()</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <h6 class="text-muted">Return Date</h6>
+                            <p>@Model.EndDate.ToLongDateString()</p>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                        <div class="d-flex gap-2">
+                            @if (Model.Status == "Confirmed")
+                            {
+                                <a asp-action="DownloadPdf" asp-route-id="@Model.Id" class="btn btn-primary">
+                                    <i class="bi bi-file-pdf"></i> Download Receipt
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                    Cancel Booking
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form asp-action="Cancel" method="post">
+                     <input type="hidden" name="id" value="@Model.Id" />
+                     <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

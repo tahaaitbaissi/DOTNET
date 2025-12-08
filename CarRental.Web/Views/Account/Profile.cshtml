@@ -1,0 +1,56 @@
+@model CarRental.Web.Models.Api.UserProfileDto
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">My Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Full Name</div>
+                        <div class="col-sm-8 fw-bold">@Model.FullName</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Email</div>
+                        <div class="col-sm-8">
+                            @Model.Email
+                            @if (Model.IsEmailVerified)
+                            {
+                                <span class="badge bg-success ms-2">Verified</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark ms-2">Unverified</span>
+                                <a asp-action="VerifyEmail" asp-route-email="@Model.Email" class="btn btn-sm btn-outline-primary ms-2">Enter Code</a>
+                                <form asp-action="ResendVerification" method="post" class="d-inline ms-2">
+                                    <button type="submit" class="btn btn-sm btn-link text-decoration-none">Resend Email</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Phone</div>
+                        <div class="col-sm-8">@Model.Phone</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Address</div>
+                        <div class="col-sm-8">@Model.Address</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Driver's License</div>
+                        <div class="col-sm-8">@Model.DriverLicense</div>
+                    </div>
+
+                    <hr />
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="ChangePassword" class="btn btn-outline-secondary">Change Password</a>
+                        <a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
