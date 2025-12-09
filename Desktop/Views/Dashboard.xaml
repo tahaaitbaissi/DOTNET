@@ -1,0 +1,8 @@
+<!-- Find the buttons for Reservations, Returns, Contracts, Reports, and Settings -->
+<!-- Add Click event handlers like this: -->
+
+<Button x:Name="BtnReservations" Click="BtnReservations_Click" ... />
+<Button x:Name="BtnReturns" Click="BtnReturns_Click" ... />
+<Button x:Name="BtnContracts" Click="BtnContracts_Click" ... />
+<Button x:Name="BtnReports" Click="BtnReports_Click" ... />
+<Button x:Name="BtnSettings" Click="BtnSettings_Click" ... />

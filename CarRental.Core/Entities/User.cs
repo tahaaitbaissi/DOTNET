@@ -11,6 +11,10 @@ namespace CarRental.Core.Entities
         public string PasswordHash { get; set; }
         public bool IsActive { get; set; } = true;
 
+        // Role FK (nullable)
+        public long? RoleId { get; set; }
+        public virtual Role? Role { get; set; }
+
         // Verification & Security
         public string? VerificationToken { get; set; }
         public DateTime? VerificationTokenExpiry { get; set; }
@@ -20,9 +24,9 @@ namespace CarRental.Core.Entities
         public DateTime? PasswordResetTokenExpiry { get; set; }
 
         // Navigation Properties
-        public virtual Client Client { get; set; }
-        public virtual Employee Employee { get; set; }
-        public virtual ICollection<Notification> Notifications { get; set; }
+        public virtual Client? Client { get; set; }
+        public virtual Employee? Employee { get; set; }
+        public virtual ICollection<Notification>? Notifications { get; set; }
 
         public void ChangePassword(string newPasswordHash)
         {

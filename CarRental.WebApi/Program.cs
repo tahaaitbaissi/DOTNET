@@ -24,6 +24,9 @@ builder.Services.AddPersistenceServices(configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(configuration);
 
+// Register seeder
+builder.Services.AddScoped<CarRental.Persistence.Seed.DatabaseSeeder>();
+
 // ================================
 // 3. AUTHENTICATION (JWT)
 // ================================
@@ -142,6 +145,14 @@ builder.Services.AddProblemDetails();
 // BUILD THE APP
 // ================================
 var app = builder.Build();
+
+// Run seeder in development environment
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<CarRental.Persistence.Seed.DatabaseSeeder>();
+    await seeder.SeedAsync();
+}
 
 // ================================
 // MIDDLEWARE PIPELINE (ORDER MATTERS!)

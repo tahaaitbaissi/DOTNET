@@ -20,6 +20,7 @@ namespace CarRental.Application.DTOs
         
         // Computed property for display
         public string DisplayName => $"{Year} {Make} {Model}";
+        public string? MainImage => ImageUrls?.Count > 0 ? ImageUrls[0] : null;
     }
 }
 

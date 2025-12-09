@@ -4,16 +4,19 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CarRental.Core.Interfaces.Services;
 
 namespace CarRental.Persistence.Seed
 {
     public class DatabaseSeeder
     {
         private readonly ApplicationDbContext _context;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public DatabaseSeeder(ApplicationDbContext context)
+        public DatabaseSeeder(ApplicationDbContext context, IPasswordHasher passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task SeedAsync()
@@ -31,6 +34,8 @@ namespace CarRental.Persistence.Seed
             if (!await _context.Roles.AnyAsync())
             {
                 await SeedRolesAsync();
+                // Save roles so we can reference their generated IDs
+                await _context.SaveChangesAsync();
             }
 
             // Seed Admin User
@@ -71,17 +76,27 @@ namespace CarRental.Persistence.Seed
 
         private async Task SeedAdminUserAsync()
         {
-            // Note: In production, use proper password hashing (e.g., BCrypt, ASP.NET Core Identity)
+            // Create admin user with hashed default password
+            var password = "Admin@123"; // default password for local development
+            var hashed = _passwordHasher.HashPassword(password);
+
             var adminUser = new User
             {
                 Email = "admin@carrental.com",
                 Username = "admin",
                 FullName = "System Administrator",
-                PasswordHash = "AQAAAAIAAYagAAAAEExampleHashReplaceInProduction", // Replace with actual hash
+                PasswordHash = hashed,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+
+            // Assign Employee role if available
+            var employeeRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == UserRole.Employee);
+            if (employeeRole != null)
+            {
+                adminUser.RoleId = employeeRole.Id;
+            }
 
             await _context.Users.AddAsync(adminUser);
             await _context.SaveChangesAsync(); // Save to get the User ID
