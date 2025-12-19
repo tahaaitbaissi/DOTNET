@@ -69,8 +69,8 @@ namespace CarRental.Desktop.ViewModels
             _clients = new ObservableCollection<ClientDto>();
 
             LoadClientsCommand = new RelayCommand(async _ => await LoadClientsAsync());
-            // Add Client disabled for now as it usually requires registration flow
-            AddClientCommand = new RelayCommand(_ => StartEdit(null), _ => false); 
+            // Add Client enabled
+            AddClientCommand = new RelayCommand(_ => StartEdit(null)); 
             EditClientCommand = new RelayCommand(_ => StartEdit(SelectedClient), _ => SelectedClient != null);
             DeleteClientCommand = new RelayCommand(async _ => await DeleteClientAsync(), _ => SelectedClient != null);
             SaveCommand = new RelayCommand(async _ => await SaveAsync());
@@ -83,6 +83,7 @@ namespace CarRental.Desktop.ViewModels
 
         private async Task LoadClientsAsync()
         {
+            if (!SessionManager.IsLoggedIn) return;
             var clients = await _clientService.GetAllClientsAsync();
             Clients = new ObservableCollection<ClientDto>(clients);
         }
@@ -91,13 +92,14 @@ namespace CarRental.Desktop.ViewModels
         {
             if (client == null)
             {
-                // Add New - Not supported in this simplified view yet
+                // Add New
                 EditTitle = "Add New Client";
                 FullName = "";
                 Email = "";
                 Phone = "";
                 LicenseNumber = "";
                 Address = "";
+                LicenseExpiry = DateTime.Today.AddYears(1);
                 SelectedClient = null;
             }
             else
@@ -128,11 +130,25 @@ namespace CarRental.Desktop.ViewModels
                 };
 
                 await _clientService.UpdateClientAsync(SelectedClient.Id, updateDto);
-                
-                // Refresh list
-                await LoadClientsAsync();
             }
+            else
+            {
+                 // Create New
+                var createDto = new CarRental.Application.DTOs.CreateClientDto(
+                    FullName,
+                    Email,
+                    Phone,
+                    Address,
+                    LicenseNumber,
+                    LicenseExpiry
+                );
+                
+                await _clientService.CreateClientAsync(createDto);
+            }
+
             IsEditing = false;
+            // Refresh list
+            await LoadClientsAsync();
         }
 
         private async Task DeleteClientAsync()

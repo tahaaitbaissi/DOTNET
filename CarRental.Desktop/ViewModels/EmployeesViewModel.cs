@@ -71,6 +71,7 @@ namespace CarRental.Desktop.ViewModels
 
         private async Task LoadEmployeesAsync()
         {
+            if (!SessionManager.IsLoggedIn) return;
             var employees = await _employeeService.GetAllEmployeesAsync();
             Employees = new ObservableCollection<EmployeeDto>(employees);
         }

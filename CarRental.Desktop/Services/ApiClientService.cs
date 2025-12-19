@@ -7,12 +7,7 @@ namespace CarRental.Desktop.Services
     public interface IClientService
     {
         Task<List<ClientDto>> GetAllClientsAsync();
-        // Client creation might be complex (Authentication/Registration), 
-        // usually handled by AuthController register?
-        // Or if Admin creates client, using ClientsController.Create?
-        // Checking backend: ClientsController usually has Get, Update, etc.
-        // Let's assume standard CRUD for now.
-        // Task AddClientAsync(CreateClientDto client); 
+        Task CreateClientAsync(CreateClientDto client);
         Task UpdateClientAsync(long id, UpdateClientDto client);
         Task DeleteClientAsync(long id);
     }
@@ -31,6 +26,12 @@ namespace CarRental.Desktop.Services
             // GET /api/Clients
             var result = await _apiClient.GetAsync<List<ClientDto>>("api/Clients");
             return result ?? new List<ClientDto>();
+        }
+
+        public async Task CreateClientAsync(CreateClientDto client)
+        {
+            // POST /api/Clients
+            await _apiClient.PostAsync("api/Clients", client);
         }
 
         public async Task UpdateClientAsync(long id, UpdateClientDto client)

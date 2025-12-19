@@ -6,6 +6,7 @@
         xmlns:viewmodels="clr-namespace:CarRental.Desktop.ViewModels"
         xmlns:views="clr-namespace:CarRental.Desktop.Views"
         xmlns:controls="clr-namespace:CarRental.Desktop.Controls"
+        xmlns:converters="clr-namespace:CarRental.Desktop.Converters"
         mc:Ignorable="d"
         Title="Car Rental Back-office" Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
@@ -74,6 +75,8 @@
         <DataTemplate DataType="{x:Type viewmodels:SettingsViewModel}">
             <views:SettingsView/>
         </DataTemplate>
+        
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
 
     <Grid>
@@ -83,7 +86,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- Sidebar -->
-        <controls:Sidebar Grid.Column="0" DataContext="{Binding}"/>
+        <controls:Sidebar Grid.Column="0" DataContext="{Binding}"
+                          Visibility="{Binding IsLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
         <!-- Main Content Area -->
         <Grid Grid.Column="1">
@@ -93,7 +97,8 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <controls:Header Grid.Row="0" DataContext="{Binding}"/>
+            <controls:Header Grid.Row="0" DataContext="{Binding}"
+                             Visibility="{Binding IsLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
             <!-- Content -->
             <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" Margin="20"/>

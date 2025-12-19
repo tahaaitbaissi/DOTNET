@@ -16,7 +16,8 @@ namespace CarRental.Desktop.Services
 
         public async Task<List<BookingDto>> GetAllBookingsAsync()
         {
-            var (result, error) = await _apiClient.GetRawAsync<List<BookingDto>>("api/Bookings");
+            // Use Reports endpoint as the main list endpoint
+            var (result, error) = await _apiClient.GetRawAsync<List<BookingDto>>("api/Reports/bookings");
             return result ?? new List<BookingDto>();
         }
 
@@ -34,32 +35,25 @@ namespace CarRental.Desktop.Services
 
         public async Task<bool> UpdateBookingAsync(BookingDto booking)
         {
-            var (success, error) = await _apiClient.PutRawAsync($"api/Bookings/{booking.Id}", booking);
-            return success;
+            // No generic update endpoint available in current API spec
+            // Specific actions (Cancel, Return) should be used instead
+            return await Task.FromResult(false);
         }
 
         public async Task<bool> CancelBookingAsync(long id)
         {
-            var (success, error) = await _apiClient.DeleteAsync($"api/Bookings/{id}");
+            // Use PUT endpoint for cancellation
+            // Note: clientID query param is optional in spec, omitting for now
+            var (success, error) = await _apiClient.PutRawAsync($"api/Bookings/{id}/cancel", new { });
             return success;
         }
 
         public async Task<List<BookingDto>> GetActiveBookingsAsync()
         {
-            // First try a dedicated endpoint if backend provides it
-            var (activeResult, activeError) = await _apiClient.GetRawAsync<List<BookingDto>>("api/Bookings/active");
-            if (activeResult != null)
-            {
-                return activeResult;
-            }
-
-            // If not available or returned an error, fallback to fetching all and filtering client-side
-            var (allResult, allError) = await _apiClient.GetRawAsync<List<BookingDto>>("api/Bookings");
-            var bookings = allResult ?? new List<BookingDto>();
-
+            // Fetch all via reports and filter client-side
+            var bookings = await GetAllBookingsAsync();
             var activeStatuses = new[] { "Active", "Pending", "Confirmed" };
-            var filtered = bookings.Where(b => !string.IsNullOrEmpty(b.Status) && activeStatuses.Contains(b.Status)).ToList();
-            return filtered;
+            return bookings.Where(b => !string.IsNullOrEmpty(b.Status) && activeStatuses.Contains(b.Status)).ToList();
         }
 
         public async Task<DashboardDto> GetDashboardDataAsync()

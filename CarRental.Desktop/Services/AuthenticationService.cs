@@ -8,6 +8,7 @@ namespace CarRental.Desktop.Services
         Task<bool> LoginAsync(string username, string password);
         void Logout();
         UserInfoDto? CurrentUser { get; }
+        event Action? AuthStateChanged;
     }
 
     public class AuthenticationService : IAuthenticationService
@@ -15,6 +16,8 @@ namespace CarRental.Desktop.Services
         private readonly IApiClient _apiClient;
 
         public UserInfoDto? CurrentUser { get; private set; }
+
+        public event Action? AuthStateChanged;
 
         public AuthenticationService(IApiClient apiClient)
         {
@@ -37,6 +40,7 @@ namespace CarRental.Desktop.Services
                 var role = authResponse.User.Role ?? "User";
                 SessionManager.Login(username, role);
 
+                AuthStateChanged?.Invoke();
                 return true;
             }
 
@@ -49,6 +53,7 @@ namespace CarRental.Desktop.Services
             CurrentUser = null;
 
             SessionManager.Logout();
+            AuthStateChanged?.Invoke();
         }
     }
 }

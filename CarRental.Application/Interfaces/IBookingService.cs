@@ -31,5 +31,20 @@ namespace CarRental.Application.Interfaces
         /// Generates a PDF confirmation for the booking
         /// </summary>
         Task<Result<byte[]>> GetBookingPdfAsync(long bookingId);
+
+        /// <summary>
+        /// Gets all bookings in the system (for admin)
+        /// </summary>
+        Task<Result<IEnumerable<BookingDto>>> GetAllBookingsAsync();
+
+        /// <summary>
+        /// Deletes a booking (Admin only)
+        /// </summary>
+        Task<Result<bool>> DeleteBookingAsync(long bookingId);
+
+        /// <summary>
+        /// Updates an existing booking
+        /// </summary>
+        Task<Result<BookingDto>> UpdateBookingAsync(long bookingId, UpdateBookingDto dto);
     }
 }

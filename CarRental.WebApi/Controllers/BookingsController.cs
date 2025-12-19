@@ -26,6 +26,23 @@ namespace CarRental.WebApi.Controllers
             _bookingService = bookingService;
             _vehicleService = vehicleService;
             _logger = logger;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Gets all bookings (admin only ideally)
+        /// </summary>
+        /// <returns>List of all bookings</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<BookingDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<BookingDto>>> GetAll()
+        {
+            var result = await _bookingService.GetAllBookingsAsync();
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new ProblemDetails { Title = "Error", Detail = result.Error });
+            }
+            return Ok(result.Value);
         }
 
         /// <summary>
@@ -233,6 +250,45 @@ namespace CarRental.WebApi.Controllers
             }
 
             _logger.LogInformation("Vehicle returned successfully for booking {BookingId}", id);
+            return Ok(result.Value);
+        }
+
+        /// <summary>
+        /// Delete a booking (Admin only)
+        /// </summary>
+        [HttpDelete("{id:long}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var result = await _bookingService.DeleteBookingAsync(id);
+            if (!result.IsSuccess)
+            {
+                return NotFound(new ProblemDetails { Title = "Not Found", Detail = result.Error });
+            }
+            return Ok(new { message = "Booking deleted successfully" });
+        }
+
+        /// <summary>
+        /// Update a booking
+        /// </summary>
+        [HttpPut("{id:long}")]
+        [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BookingDto>> Update(long id, [FromBody] UpdateBookingDto dto)
+        {
+            var result = await _bookingService.UpdateBookingAsync(id, dto);
+
+            if (!result.IsSuccess)
+            {
+                 if (result.Error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    return NotFound(new ProblemDetails { Title = "Not Found", Detail = result.Error });
+                }
+                return BadRequest(new ProblemDetails { Title = "Update Failed", Detail = result.Error });
+            }
+
             return Ok(result.Value);
         }
     }

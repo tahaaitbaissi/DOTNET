@@ -149,9 +149,16 @@ var app = builder.Build();
 // Run seeder in development environment
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<CarRental.Persistence.Seed.DatabaseSeeder>();
-    await seeder.SeedAsync();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<CarRental.Persistence.Seed.DatabaseSeeder>();
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "An error occurred while seeding the database.");
+    }
 }
 
 // ================================

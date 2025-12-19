@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:CarRental.Desktop.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="900">
     <Grid>
@@ -10,31 +11,97 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
+        <Grid.Resources>
+             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </Grid.Resources>
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-            <Button Content="Complete Rental" Command="{Binding CompleteRentalCommand}" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource BackgroundBrush}" Width="150"/>
-            <Button Content="Cancel Rental" Command="{Binding CancelRentalCommand}" Margin="10,0,0,0" Background="{StaticResource ErrorBrush}" Foreground="White" Width="150"/>
+            <Button Content="+ New Rental" Command="{Binding AddRentalCommand}" Background="{StaticResource PrimaryBrush}" Foreground="White" Width="120"/>
+            <Button Content="Edit" Command="{Binding EditRentalCommand}" Margin="10,0,0,0" Background="{StaticResource PrimaryBrush}" Foreground="White" Width="100"/>
+            <Button Content="Complete" Command="{Binding CompleteRentalCommand}" Margin="10,0,0,0" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource BackgroundBrush}" Width="100"/>
+            <Button Content="Cancel" Command="{Binding CancelRentalCommand}" Margin="10,0,0,0" Background="{StaticResource WarningBrush}" Foreground="Black" Width="100"/>
+            <Button Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="10,0,0,0" Background="{StaticResource ErrorBrush}" Foreground="White" Width="100"/>
         </StackPanel>
 
         <!-- DataGrid -->
         <DataGrid Grid.Row="1" ItemsSource="{Binding Rentals}" SelectedItem="{Binding SelectedRental}" AutoGenerateColumns="False" IsReadOnly="True">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
                 <DataGridTextColumn Header="Customer" Binding="{Binding ClientName}" Width="*"/>
                 <DataGridTextColumn Header="Vehicle" Binding="{Binding VehicleName}" Width="*"/>
                 <DataGridTextColumn Header="Start Date" Binding="{Binding StartDate, StringFormat=d}" Width="100"/>
                 <DataGridTextColumn Header="End Date" Binding="{Binding EndDate, StringFormat=d}" Width="100"/>
-                <DataGridTextColumn Header="Total Amount" Binding="{Binding TotalAmount, StringFormat=C}" Width="100"/>
-                <DataGridTemplateColumn Header="Status" Width="100">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="4" Padding="5,2">
-                                <TextBlock Text="{Binding Status}" HorizontalAlignment="Center"/>
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Create Overlay -->
+        <Border Grid.RowSpan="2" Background="#80000000" Visibility="{Binding IsAdding, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="{StaticResource SurfaceBrush}" Width="500" CornerRadius="8" Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="New Rental" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" Foreground="{StaticResource TextBrush}"/>
+                    
+                    <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                        <TextBlock Text="Client" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <ComboBox ItemsSource="{Binding Clients}" SelectedItem="{Binding SelectedClient}" DisplayMemberPath="FullName" Height="35"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Margin="0,0,0,10">
+                        <TextBlock Text="Vehicle" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <ComboBox ItemsSource="{Binding Vehicles}" SelectedItem="{Binding SelectedVehicle}" DisplayMemberPath="Model" Height="35"/>
+                    </StackPanel>
+                    
+                    <Grid Grid.Row="3" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Start Date" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                            <DatePicker SelectedDate="{Binding NewStartDate}" Height="35"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="End Date" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                            <DatePicker SelectedDate="{Binding NewEndDate}" Height="35"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Grid.Row="4" Margin="0,0,0,10">
+                        <TextBlock Text="Pick-up Location" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewPickUpLocation}" Height="35"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Row="5" Margin="0,0,0,10">
+                        <TextBlock Text="Drop-off Location" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewDropOffLocation}" Height="35"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="6" Margin="0,0,0,20">
+                        <TextBlock Text="Notes" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NewNotes}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Command="{Binding CancelAddCommand}" Width="100" Background="Transparent" Foreground="{StaticResource TextBrush}" Margin="0,0,10,0"/>
+                        <Button Content="Save Rental" Command="{Binding SaveRentalCommand}" Width="120" Background="{StaticResource PrimaryBrush}" Foreground="White"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Border>
     </Grid>
 </UserControl>
