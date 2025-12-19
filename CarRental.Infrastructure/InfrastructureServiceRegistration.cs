@@ -27,6 +27,7 @@ namespace CarRental.Infrastructure
             // Register configuration settings
             services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
             services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+            services.Configure<AppSettings>(configuration.GetSection(AppSettings.SectionName));
 
             // Register common services
             services.AddSingleton<IDateTimeProvider, DateTimeProvider>();

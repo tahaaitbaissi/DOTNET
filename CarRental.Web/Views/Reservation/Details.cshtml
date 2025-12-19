@@ -15,8 +15,16 @@
                             <p class="fs-5">@Model.VehicleName</p>
                         </div>
                         <div class="col-sm-6 text-end">
-                            <h6 class="text-muted">Total Paid</h6>
+                            <h6 class="text-muted">Total Amount</h6>
                             <p class="fs-4 text-success fw-bold">@Model.TotalAmount.ToString("C")</p>
+                            @if (Model.IsPaid)
+                            {
+                                <span class="badge bg-success">✓ Paid</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">⏳ Payment Pending</span>
+                            }
                         </div>
                     </div>
 
@@ -36,6 +44,12 @@
                     <div class="d-flex justify-content-between">
                         <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
                         <div class="d-flex gap-2">
+                            @if (!Model.IsPaid && (Model.Status == "Pending" || Model.Status == "Confirmed"))
+                            {
+                                <a asp-controller="Payment" asp-action="Process" asp-route-bookingId="@Model.Id" class="btn btn-success">
+                                    💳 Pay Now
+                                </a>
+                            }
                             @if (Model.Status == "Confirmed")
                             {
                                 <a asp-action="DownloadPdf" asp-route-id="@Model.Id" class="btn btn-primary">

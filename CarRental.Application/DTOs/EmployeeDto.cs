@@ -6,9 +6,9 @@ namespace CarRental.Application.DTOs
     {
         public long Id { get; set; }
         public long UserId { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Position { get; set; }
+        public required string FullName { get; set; }
+        public required string Email { get; set; }
+        public required string Position { get; set; }
         public DateTime HireDate { get; set; }
         public bool IsActive { get; set; }
     }

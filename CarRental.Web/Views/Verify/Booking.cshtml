@@ -1,0 +1,338 @@
+@model CarRental.Web.Models.Api.BookingDto
+
+@{
+    ViewData["Title"] = "Booking Verification";
+    var verificationTime = ViewBag.VerificationTime as DateTime? ?? DateTime.UtcNow;
+    var isAuthenticated = ViewBag.IsAuthenticated as bool? ?? false;
+}
+
+<style>
+    .verification-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+    }
+
+    .verification-badge {
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .verification-badge::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .checkmark-circle {
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    @@keyframes scaleIn {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .checkmark {
+        font-size: 48px;
+        color: #10b981;
+        animation: checkmark 0.8s ease-out 0.3s backwards;
+    }
+
+    @@keyframes checkmark {
+        0% { opacity: 0; transform: rotate(-45deg) scale(0); }
+        100% { opacity: 1; transform: rotate(0deg) scale(1); }
+    }
+
+    .verification-content {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+
+    .info-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .info-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #6b7280;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .verification-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 10px;
+    }
+
+    .security-seal {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0fdf4;
+        padding: 10px 20px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border: 1px solid #86efac;
+    }
+
+    .security-seal i {
+        color: #16a34a;
+        font-size: 18px;
+    }
+</style>
+
+<div class="verification-container">
+    <div class="verification-badge">
+        <div class="checkmark-circle">
+            <div class="checkmark">✓</div>
+        </div>
+        <h2 style="margin: 0; font-size: 28px; font-weight: 700;">Booking Verified</h2>
+        <p style="margin: 10px 0 0 0; opacity: 0.9;">This booking is authentic and registered in our system</p>
+    </div>
+
+    <div class="verification-content">
+        <!-- Booking ID and Status -->
+        <div class="info-section">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="info-label">Booking Reference</div>
+                    <div class="info-value" style="font-size: 24px; color: #667eea;">#@Model.Id</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="info-label">Status</div>
+                    <div>
+                        @if (Model.Status == "Confirmed")
+                        {
+                            <span class="status-badge status-confirmed">✓ Confirmed</span>
+                        }
+                        else if (Model.Status == "Pending")
+                        {
+                            <span class="status-badge status-pending">⏳ Pending</span>
+                        }
+                        else if (Model.Status == "Cancelled")
+                        {
+                            <span class="status-badge status-cancelled">✗ Cancelled</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge" style="background: #e5e7eb; color: #374151;">@Model.Status</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Information -->
+        <div class="info-section">
+            <h5 style="margin-bottom: 15px; color: #1f2937;">🚗 Vehicle Information</h5>
+            <div class="info-label">Vehicle</div>
+            <div class="info-value" style="font-size: 20px;">@Model.VehicleName</div>
+        </div>
+
+        <!-- Rental Period -->
+        <div class="info-section">
+            <h5 style="margin-bottom: 15px; color: #1f2937;">📅 Rental Period</h5>
+            <div class="detail-grid">
+                <div>
+                    <div class="info-label">Pick-up Date</div>
+                    <div class="info-value">@Model.StartDate.ToString("MMMM dd, yyyy")</div>
+                    <div style="font-size: 13px; color: #6b7280; margin-top: 3px;">@Model.StartDate.ToString("dddd, hh:mm tt")</div>
+                </div>
+                <div>
+                    <div class="info-label">Return Date</div>
+                    <div class="info-value">@Model.EndDate.ToString("MMMM dd, yyyy")</div>
+                    <div style="font-size: 13px; color: #6b7280; margin-top: 3px;">@Model.EndDate.ToString("dddd, hh:mm tt")</div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 12px; background: #f9fafb; border-radius: 8px; text-align: center;">
+                <span style="font-size: 14px; color: #6b7280;">Duration:</span>
+                <span style="font-size: 18px; font-weight: 600; color: #1f2937; margin-left: 8px;">
+                    @((Model.EndDate - Model.StartDate).Days) days
+                </span>
+            </div>
+        </div>
+
+        <!-- Total Amount -->
+        <div class="info-section">
+            <h5 style="margin-bottom: 15px; color: #1f2937;">💰 Booking Amount</h5>
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="info-label">Total Amount</div>
+                    <div style="font-size: 32px; font-weight: 700; color: #10b981;">
+                        @Model.TotalAmount.ToString("C")
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="info-label">Payment Status</div>
+                    <div class="info-value">
+                        @if (Model.IsPaid)
+                        {
+                            <span style="color: #10b981;">✓ Paid</span>
+                        }
+                        else
+                        {
+                            <span style="color: #f59e0b;">⏳ Payment Pending</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Information -->
+        <div class="info-section">
+            <h5 style="margin-bottom: 15px; color: #1f2937;">🔒 Verification Details</h5>
+            <div class="detail-grid">
+                <div>
+                    <div class="info-label">Verified At</div>
+                    <div class="info-value">@verificationTime.ToString("MMM dd, yyyy HH:mm:ss") UTC</div>
+                </div>
+                <div>
+                    <div class="info-label">Verification Method</div>
+                    <div class="info-value">QR Code Scan</div>
+                </div>
+            </div>
+
+            <div class="security-seal">
+                <i class="bi bi-shield-check"></i>
+                <span style="color: #065f46; font-weight: 600;">Secured by Car Rental System</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        @if (!isAuthenticated && Model.Status != "Cancelled")
+        {
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background: #f0f9ff; border-radius: 10px; border: 1px solid #bfdbfe;">
+                <p style="margin: 0 0 15px 0; color: #1e40af;">
+                    <i class="bi bi-info-circle"></i> Want to manage this booking?
+                </p>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary">
+                    🔐 Login to Your Account
+                </a>
+            </div>
+        }
+
+        @if (isAuthenticated && Model.Status == "Confirmed")
+        {
+            <div class="d-flex gap-2 justify-content-center" style="margin-top: 30px;">
+                <a asp-controller="Reservation" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary">
+                    📋 View Full Details
+                </a>
+                <a asp-controller="Reservation" asp-action="DownloadPdf" asp-route-id="@Model.Id" class="btn btn-success">
+                    📄 Download PDF
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="verification-footer">
+        <p style="margin: 0;">
+            <i class="bi bi-shield-check"></i> This booking was verified through our secure system<br/>
+            <small>If you suspect any fraudulent activity, please contact us immediately</small>
+        </p>
+        <p style="margin: 15px 0 0 0;">
+            <a href="mailto:contact@carrental.ma" style="color: #667eea; text-decoration: none;">
+                📧 contact@carrental.ma
+            </a>
+            <span style="margin: 0 10px; color: #d1d5db;">|</span>
+            <a href="tel:+212600000000" style="color: #667eea; text-decoration: none;">
+                📱 +212 6XX XXX XXX
+            </a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add a subtle animation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.verification-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+}

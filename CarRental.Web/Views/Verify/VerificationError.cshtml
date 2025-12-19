@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Verification Error";
+    var bookingId = ViewBag.BookingId;
+    var errorMessage = ViewBag.Error as string ?? "An error occurred during verification.";
+}
+
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 40px 30px;
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        color: #ef4444;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .error-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #dc2626;
+        margin-bottom: 15px;
+    }
+
+    .error-message {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .alert-box {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: left;
+    }
+
+    .alert-box p {
+        margin: 0;
+        color: #991b1b;
+        font-size: 14px;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title">Verification Error</h1>
+        <p class="error-message">
+            We encountered an issue while trying to verify booking <strong>#@bookingId</strong>.
+        </p>
+
+        <div class="alert-box">
+            <p><strong>Error Details:</strong></p>
+            <p style="margin-top: 10px;">@errorMessage</p>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                This could be a temporary issue. Please try again in a few moments.
+            </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <button onclick="location.reload()" class="btn btn-primary">
+                    🔄 Try Again
+                </button>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                    🏠 Go to Home
+                </a>
+                <a href="mailto:contact@carrental.ma" class="btn btn-outline-secondary">
+                    📧 Contact Support
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 13px; color: #9ca3af; margin: 0;">
+                Technical Support: <a href="mailto:support@carrental.ma" style="color: #667eea;">support@carrental.ma</a>
+            </p>
+        </div>
+    </div>
+</div>

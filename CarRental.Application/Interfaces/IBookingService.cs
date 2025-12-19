@@ -11,17 +11,22 @@ namespace CarRental.Application.Interfaces
         /// Creates a new booking after validating dates and vehicle availability
         /// </summary>
         Task<Result<BookingDto>> CreateBookingAsync(CreateBookingDto dto);
-        
+
+        /// <summary>
+        /// Confirms a pending booking
+        /// </summary>
+        Task<Result<BookingDto>> ConfirmBookingAsync(long bookingId);
+
         /// <summary>
         /// Cancels an existing booking if cancellation policy allows
         /// </summary>
         Task<Result<bool>> CancelBookingAsync(long bookingId, long clientId);
-        
+
         /// <summary>
         /// Gets all bookings for a specific client
         /// </summary>
         Task<Result<IEnumerable<BookingDto>>> GetClientBookingsAsync(long clientId);
-        
+
         /// <summary>
         /// Gets a specific booking by ID
         /// </summary>

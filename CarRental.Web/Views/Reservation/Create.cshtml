@@ -1,5 +1,6 @@
 @model CarRental.Web.Models.Api.CreateBookingDto
 @{
+    ViewData["Title"] = "Nouvelle Réservation";
     var vehicle = ViewBag.Vehicle as CarRental.Web.Models.Api.VehicleDto;
     var totalAmount = (decimal)ViewBag.TotalAmount;
     var days = (int)ViewBag.Days;
@@ -7,49 +8,222 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Confirm Your Booking</h3>
+                    <h3 class="mb-0">
+                        <i class="bi bi-calendar-check"></i> Confirmer Votre Réservation
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-4">
+                <div class="card-body p-4">
+                    <!-- Vehicle and Rental Summary -->
+                    <div class="row mb-4 p-3 bg-light rounded">
                         <div class="col-md-6">
-                            <h5>Vehicle Details</h5>
+                            <h5 class="text-primary">
+                                <i class="bi bi-car-front"></i> Détails du Véhicule
+                            </h5>
                             <p class="mb-1"><strong>@vehicle.Make @vehicle.Model</strong></p>
-                            <p class="mb-1">@vehicle.Year - @vehicle.Color</p>
-                            <p class="text-muted">@vehicle.DailyRate.ToString("C") / day</p>
+                            <p class="mb-1">Année: @vehicle.Year</p>
+                            <p class="mb-1">Couleur: @vehicle.Color</p>
+                            <p class="text-success fw-bold">@vehicle.DailyRate.ToString("C") / jour</p>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <h5>Rental Period</h5>
-                            <p class="mb-1">From: <strong>@Model.StartDate.ToShortDateString()</strong></p>
-                            <p class="mb-1">To: <strong>@Model.EndDate.ToShortDateString()</strong></p>
-                            <p class="text-muted">Duration: @days days</p>
+                        <div class="col-md-6">
+                            <h5 class="text-primary">
+                                <i class="bi bi-calendar-range"></i> Période de Location
+                            </h5>
+                            <p class="mb-1">
+                                <strong>Début:</strong> @Model.StartDate.ToString("dddd dd MMMM yyyy")
+                            </p>
+                            <p class="mb-1">
+                                <strong>Fin:</strong> @Model.EndDate.ToString("dddd dd MMMM yyyy")
+                            </p>
+                            <p class="text-muted">
+                                <i class="bi bi-clock"></i> Durée: <strong>@days jour@(days > 1 ? "s" : "")</strong>
+                            </p>
                         </div>
                     </div>
 
-                    <hr />
-
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Total Amount</h4>
-                        <h2 class="text-success mb-0">@totalAmount.ToString("C")</h2>
+                    <!-- Total Amount -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-success bg-opacity-10 rounded">
+                        <h4 class="mb-0">Montant Total</h4>
+                        <h2 class="text-success mb-0 fw-bold">@totalAmount.ToString("C")</h2>
                     </div>
 
+                    <hr class="my-4" />
+
+                    <!-- Booking Form -->
                     <form asp-action="Create" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
+                        @if (ViewBag.Error != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong>Erreur:</strong> @ViewBag.Error
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+
+                        <!-- Hidden Fields -->
                         <input type="hidden" asp-for="VehicleId" />
                         <input type="hidden" asp-for="StartDate" />
                         <input type="hidden" asp-for="EndDate" />
-                        @* ClientId is set in Controller based on User Session *@
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">Confirm Booking</button>
-                            <a asp-controller="Vehicule" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <!-- Location Fields -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="PickUpLocation" class="form-label fw-bold">
+                                    <i class="bi bi-geo-alt-fill text-success"></i> Lieu de Prise en Charge
+                                </label>
+                                <input asp-for="PickUpLocation"
+                                       class="form-control form-control-lg"
+                                       placeholder="Ex: Aéroport Mohammed V, Casablanca"
+                                       required />
+                                <span asp-validation-for="PickUpLocation" class="text-danger"></span>
+                                <small class="form-text text-muted">Où souhaitez-vous récupérer le véhicule ?</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DropOffLocation" class="form-label fw-bold">
+                                    <i class="bi bi-geo-alt text-danger"></i> Lieu de Restitution
+                                </label>
+                                <input asp-for="DropOffLocation"
+                                       class="form-control form-control-lg"
+                                       placeholder="Ex: Gare Casa-Voyageurs, Casablanca"
+                                       required />
+                                <span asp-validation-for="DropOffLocation" class="text-danger"></span>
+                                <small class="form-text text-muted">Où allez-vous restituer le véhicule ?</small>
+                            </div>
+                        </div>
+
+                        <!-- Quick Location Buttons -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-pin-map"></i> Lieux Populaires
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Aéroport Mohammed V, Casablanca')">
+                                    ✈️ Aéroport Mohammed V
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Gare Casa-Voyageurs, Casablanca')">
+                                    🚂 Gare Casa-Voyageurs
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Centre-Ville, Rabat')">
+                                    🏙️ Centre-Ville Rabat
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Aéroport Marrakech-Menara')">
+                                    ✈️ Aéroport Marrakech
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="setSameLocation()">
+                                    ↔️ Même lieu pour les deux
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Notes Field -->
+                        <div class="mb-4">
+                            <label asp-for="Notes" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text"></i> Notes Supplémentaires (Optionnel)
+                            </label>
+                            <textarea asp-for="Notes"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Ajouter des notes ou des demandes spéciales..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Ex: Besoin d'un siège bébé, préférence d'horaire, etc.
+                            </small>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="acceptTerms" required>
+                            <label class="form-check-label" for="acceptTerms">
+                                J'accepte les <a href="#" class="text-primary">conditions générales</a> et la <a href="#" class="text-primary">politique d'annulation</a>
+                            </label>
+                        </div>
+
+                        <!-- Important Information -->
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-info-circle"></i> Informations Importantes
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li>Un permis de conduire valide est requis lors de la prise en charge</li>
+                                <li>Une caution pourra être demandée lors de la remise du véhicule</li>
+                                <li>Annulation gratuite jusqu'à 24h avant le début de la location</li>
+                                <li>Le véhicule doit être restitué avec le même niveau de carburant</li>
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-controller="Vehicule" asp-action="Details" asp-route-id="@vehicle.Id"
+                               class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-check-circle"></i> Confirmer la Réservation
+                            </button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="card mt-4 border-warning">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-credit-card text-warning"></i> Informations de Paiement
+                    </h6>
+                    <p class="card-text small mb-0">
+                        Le paiement sera traité après la confirmation de votre réservation.
+                        Vous recevrez un email de confirmation avec les détails de votre réservation et les instructions de paiement.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function setLocation(field, value) {
+            if (field === 'pickup') {
+                document.getElementById('PickUpLocation').value = value;
+            } else {
+                document.getElementById('DropOffLocation').value = value;
+            }
+        }
+
+        function setSameLocation() {
+            const pickupValue = document.getElementById('PickUpLocation').value;
+            if (pickupValue) {
+                document.getElementById('DropOffLocation').value = pickupValue;
+            } else {
+                alert('Veuillez d\'abord saisir le lieu de prise en charge');
+            }
+        }
+    </script>
+}
+
+<style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-outline-secondary:hover {
+        transform: translateY(-2px);
+        transition: all 0.2s ease;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .bg-opacity-10 {
+        opacity: 0.1;
+    }
+</style>

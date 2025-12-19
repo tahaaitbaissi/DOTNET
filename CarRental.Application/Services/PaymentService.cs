@@ -40,13 +40,29 @@ namespace CarRental.Application.Services
                 return Result<PaymentDto>.Failure("Invalid payment amount.");
             }
 
+            // Ensure booking has required fields populated to avoid null errors
+            if (string.IsNullOrWhiteSpace(booking.PickUpLocation))
+            {
+                booking.PickUpLocation = "Main Office";
+            }
+            if (string.IsNullOrWhiteSpace(booking.DropOffLocation))
+            {
+                booking.DropOffLocation = "Main Office";
+            }
+            if (booking.Notes == null)
+            {
+                booking.Notes = string.Empty;
+            }
+
             var payment = new Payment
             {
                 BookingId = dto.BookingId,
                 Amount = dto.Amount,
-                PaymentMethod = dto.PaymentMethod,
+                PaymentMethod = dto.PaymentMethod ?? "Cash",
                 Status = PaymentStatus.Completed,
                 TransactionRef = Guid.NewGuid().ToString("N"), // Simulated Ref
+                PaymentIntentId = string.Empty,
+                Notes = string.Empty,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -54,24 +70,24 @@ namespace CarRental.Application.Services
             await _unitOfWork.Payments.AddAsync(payment);
 
             // Update Booking Payment Status
-            // Logic: Is the total amount covered? 
+            // Logic: Is the total amount covered?
             // For MVP simplicity, if they assume full payment:
             // Check if total payments >= booking total
-            
+
             // Get all payments for this booking (including new one since context tracks it? No, AddAsync adds to context but query might not see it yet dependent on EF tracking)
             // Safest: Add current amount to existing paid sum.
-            
+
             var existingPayments = await _unitOfWork.Payments.GetByBookingIdAsync(booking.Id);
             var totalPaid = existingPayments.Where(p => p.Status == PaymentStatus.Completed).Sum(p => p.Amount) + dto.Amount;
 
             if (totalPaid >= (booking.TotalAmount ?? 0))
             {
                 booking.IsPaid = true;
-                booking.Status = BookingStatus.Confirmed; // Confirm booking upon payment if strictly paid? Or keep status separate?
-                // Usually Payment confirms the reservation.
-                // booking.Status = BookingStatus.Confirmed; 
-                // Let's leave Status logic to BookingService or explicit confirmation, but IsPaid is definitely true.
+                booking.Status = BookingStatus.Confirmed;
             }
+
+            // Ensure all required fields are not null before updating
+            booking.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.Bookings.UpdateAsync(booking);
             await _unitOfWork.SaveChangesAsync();

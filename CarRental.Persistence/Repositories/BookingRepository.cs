@@ -15,6 +15,16 @@ namespace CarRental.Persistence.Repositories
         {
         }
 
+        public override async Task<Booking> GetByIdAsync(long id)
+        {
+            return await _dbSet
+                .Include(b => b.Vehicle)
+                .Include(b => b.Client)
+                    .ThenInclude(c => c.User)
+                .Include(b => b.Payments)
+                .FirstOrDefaultAsync(b => b.Id == id);
+        }
+
         public async Task<IEnumerable<Booking>> GetBookingsForClientAsync(long clientId)
         {
             return await _dbSet
@@ -53,4 +63,3 @@ namespace CarRental.Persistence.Repositories
         }
     }
 }
-

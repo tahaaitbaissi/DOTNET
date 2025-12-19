@@ -92,7 +92,60 @@ namespace CarRental.Application.Services
             await _unitOfWork.Bookings.AddAsync(booking);
             await _unitOfWork.SaveChangesAsync();
 
-            // Send confirmation email (fire and forget, don't fail the booking if email fails)
+            // Reload booking with navigation properties for email
+            booking = await _unitOfWork.Bookings.GetByIdAsync(booking.Id);
+
+            // Send confirmation email with PDF attachment (fire and forget, don't fail the booking if email fails)
+            if (_emailService != null)
+            {
+                try
+                {
+                    await _emailService.SendBookingConfirmationAsync(booking);
+                }
+                catch
+                {
+                    // Log but don't fail
+                }
+            }
+
+            return Result<BookingDto>.Success(MapToDto(booking, vehicle, client));
+        }
+
+        public async Task<Result<BookingDto>> ConfirmBookingAsync(long bookingId)
+        {
+            var booking = await _unitOfWork.Bookings.GetByIdAsync(bookingId);
+
+            if (booking == null)
+            {
+                return Result<BookingDto>.Failure("Booking not found.");
+            }
+
+            if (booking.Status == BookingStatus.Confirmed)
+            {
+                return Result<BookingDto>.Failure("Booking is already confirmed.");
+            }
+
+            if (booking.Status == BookingStatus.Cancelled)
+            {
+                return Result<BookingDto>.Failure("Cannot confirm a cancelled booking.");
+            }
+
+            if (booking.Status == BookingStatus.Completed)
+            {
+                return Result<BookingDto>.Failure("Cannot confirm a completed booking.");
+            }
+
+            // Confirm the booking
+            booking.Confirm();
+            await _unitOfWork.Bookings.UpdateAsync(booking);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Reload with navigation properties
+            booking = await _unitOfWork.Bookings.GetByIdAsync(bookingId);
+            var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(booking.VehicleId);
+            var client = await _unitOfWork.Clients.GetByIdAsync(booking.ClientId);
+
+            // Send confirmation email with PDF
             if (_emailService != null)
             {
                 try
@@ -140,6 +193,9 @@ namespace CarRental.Application.Services
             await _unitOfWork.Bookings.UpdateAsync(booking);
             await _unitOfWork.SaveChangesAsync();
 
+            // Reload booking with navigation properties for email
+            booking = await _unitOfWork.Bookings.GetByIdAsync(bookingId);
+
             // Send cancellation email
             if (_emailService != null)
             {
@@ -165,9 +221,9 @@ namespace CarRental.Application.Services
             }
 
             var bookings = await _unitOfWork.Bookings.GetBookingsForClientAsync(clientId);
-            
+
             var dtos = bookings.Select(b => MapToDto(b, b.Vehicle, client)).ToList();
-            
+
             return Result<IEnumerable<BookingDto>>.Success(dtos);
         }
 
@@ -194,7 +250,7 @@ namespace CarRental.Application.Services
 
             // Get active tariff for this vehicle
             var tariff = vehicle.Tariffs?.FirstOrDefault(t => t.IsActive);
-            
+
             if (tariff != null && tariff.PricePerDay.HasValue)
             {
                 return tariff.PricePerDay.Value * durationDays;
@@ -260,4 +316,3 @@ namespace CarRental.Application.Services
         }
     }
 }
-

@@ -1,0 +1,110 @@
+@{
+    ViewData["Title"] = "Booking Not Found";
+    var bookingId = ViewBag.BookingId;
+}
+
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 40px 30px;
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .error-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #dc2626;
+        margin-bottom: 15px;
+    }
+
+    .error-message {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .suggestion-box {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: left;
+        margin: 30px 0;
+    }
+
+    .suggestion-box h6 {
+        color: #92400e;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .suggestion-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #78350f;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">🔍</div>
+        <h1 class="error-title">Booking Not Found</h1>
+        <p class="error-message">
+            We couldn't find a booking with reference <strong>#@bookingId</strong> in our system.
+        </p>
+
+        <div class="suggestion-box">
+            <h6>💡 Possible Reasons:</h6>
+            <ul>
+                <li>The booking reference number may be incorrect</li>
+                <li>The booking may have been deleted from the system</li>
+                <li>The QR code may be expired or invalid</li>
+                <li>There may be a temporary system issue</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                If you believe this is an error, please contact our support team.
+            </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                    🏠 Go to Home
+                </a>
+                <a asp-controller="Reservation" asp-action="Index" class="btn btn-outline-primary">
+                    📋 My Bookings
+                </a>
+                <a href="mailto:contact@carrental.ma" class="btn btn-outline-secondary">
+                    📧 Contact Support
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 13px; color: #9ca3af; margin: 0;">
+                Need help? Call us at <a href="tel:+212600000000" style="color: #667eea;">+212 6XX XXX XXX</a>
+            </p>
+        </div>
+    </div>
+</div>

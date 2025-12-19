@@ -24,7 +24,6 @@ namespace CarRental.Persistence.Configurations
                 .HasPrecision(18, 2);
 
             // Relationships
-            // Map Vehicles collection to the Vehicle.VehicleType navigation using the VehicleTypeId FK
             builder.HasMany(vt => vt.Vehicles)
                 .WithOne(v => v.VehicleType)
                 .HasForeignKey(v => v.VehicleTypeId)
@@ -37,4 +36,3 @@ namespace CarRental.Persistence.Configurations
         }
     }
 }
-

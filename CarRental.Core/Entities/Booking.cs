@@ -12,11 +12,11 @@ namespace CarRental.Core.Entities
         public BookingStatus Status { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public string PickUpLocation { get; set; }
-        public string DropOffLocation { get; set; }
+        public string? PickUpLocation { get; set; }
+        public string? DropOffLocation { get; set; }
         public decimal? TotalAmount { get; set; }
         public bool IsPaid { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         // Navigation Properties
         public virtual Client Client { get; set; }
@@ -64,7 +64,7 @@ namespace CarRental.Core.Entities
         public decimal CalculateOverdueFee(decimal dailyRate, decimal overdueMultiplier = 1.5m)
         {
             if (!IsOverdue()) return 0;
-            
+
             var overdueDays = (DateTime.UtcNow - EndDate).Days;
             return overdueDays * dailyRate * overdueMultiplier;
         }

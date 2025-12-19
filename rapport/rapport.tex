@@ -1,0 +1,514 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{float}
+
+\geometry{left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ç}{{\c{c}}}1 {œ}{{\oe}}1 {ù}{{\`u}}1 {É}{{\'E}}1 {È}{{\`E}}1 {À}{{\`A}}1 {Ç}{{\c{C}}}1 {Œ}{{\OE}}1 {Ê}{{\^E}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+}
+
+\lstset{style=mystyle}
+
+\pagestyle{fancy}
+\setlength{\headheight}{14.5pt}
+\fancyhf{}
+\rhead{Projet .NET - CarRental}
+\lhead{Semestre 1 - 2026}
+\rfoot{Page \thepage}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Huge\bfseries Système de Gestion de Location de Voitures\par}
+    \vspace{0.5cm}
+    {\Large\textit{CarRental}\par}
+    \vspace{2cm}
+
+    {\Large\bfseries Rapport de Projet\par}
+    \vspace{0.3cm}
+    {\large Développement d'Applications avec .NET\par}
+    \vspace{3cm}
+
+    {\large
+    \textbf{Équipe de développement :}\par
+    \vspace{0.5cm}
+    Taha AIT BAISSI\\
+    Hossam NAZIH\\
+    Mouad AGDOUZ\\
+    Taha RAMI\par}
+
+    \vfill
+
+    {\large Semestre 1 - 2026\par}
+
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Contexte du projet}
+Dans le cadre de notre formation en développement .NET, nous avons conçu et développé un système complet de gestion de location de voitures. Ce projet vise à moderniser et automatiser les processus de location de véhicules en offrant une solution logicielle robuste, scalable et maintenable.
+
+\subsection{Objectifs}
+Les principaux objectifs de ce projet sont :
+\begin{itemize}
+    \item Développer une application multi-plateforme (Web, API, Desktop) pour la gestion de locations
+    \item Implémenter une architecture propre et modulaire suivant les principes SOLID
+    \item Mettre en place un système d'authentification et d'autorisation sécurisé
+    \item Créer une interface utilisateur intuitive pour les clients et les employés
+    \item Garantir la qualité du code et la maintenabilité du système
+\end{itemize}
+
+\subsection{Portée du système}
+Le système CarRental couvre l'ensemble du cycle de vie d'une location de véhicule, incluant :
+\begin{itemize}
+    \item La recherche et la réservation de véhicules
+    \item La gestion des clients et des employés
+    \item Le traitement des paiements
+    \item La maintenance des véhicules
+    \item La génération de rapports et de documents
+\end{itemize}
+
+\section{Architecture du Système}
+
+\subsection{Architecture en couches (Clean Architecture)}
+Notre projet adopte le pattern \textbf{Clean Architecture}, qui organise le code en couches concentriques avec des dépendances unidirectionnelles vers le centre. Cette architecture garantit une séparation claire des responsabilités et facilite les tests unitaires.
+
+\subsubsection{Couche Domain (Core)}
+La couche \texttt{CarRental.Core} constitue le cœur du système et contient :
+
+\textbf{Entités principales :}
+\begin{itemize}
+    \item \texttt{Vehicle} : Représente un véhicule avec ses attributs (VIN, marque, modèle, année, statut)
+    \item \texttt{Booking} : Gère les réservations avec calcul de durée et détection de chevauchement
+    \item \texttt{Client} : Profil client avec informations de permis de conduire
+    \item \texttt{User} : Authentification et gestion des utilisateurs
+    \item \texttt{Payment} : Traitement des paiements et transactions
+    \item \texttt{Maintenance} : Historique de maintenance des véhicules
+\end{itemize}
+
+\textbf{Value Objects :}
+\begin{itemize}
+    \item \texttt{Money} : Représentation immuable de valeurs monétaires avec validation de devise
+    \item \texttt{DateRange} : Gestion des plages de dates avec détection de chevauchement
+\end{itemize}
+
+\textbf{Enumerations :}
+\begin{itemize}
+    \item \texttt{VehicleStatus} : Available, Rented, InMaintenance, OutOfService
+    \item \texttt{BookingStatus} : Confirmed, Pending, Cancelled, Completed, NoShow
+    \item \texttt{PaymentStatus} : Pending, Completed, Failed, Refunded
+\end{itemize}
+
+\subsubsection{Couche Application}
+La couche \texttt{CarRental.Application} contient la logique métier et orchestre les cas d'utilisation :
+
+\textbf{Services applicatifs :}
+\begin{itemize}
+    \item \texttt{BookingService} : Création, annulation et gestion des réservations
+    \item \texttt{VehicleService} : CRUD des véhicules, recherche de disponibilité
+    \item \texttt{AuthService} : Authentification, inscription, réinitialisation de mot de passe
+    \item \texttt{PaymentService} : Traitement des paiements
+    \item \texttt{DashboardService} : Agrégation de statistiques
+\end{itemize}
+
+\textbf{DTOs (Data Transfer Objects) :} Plus de 25 DTOs pour la communication entre couches, incluant \texttt{CreateBookingDto}, \texttt{VehicleSearchDto}, \texttt{AuthResponseDto}, etc.
+
+\subsubsection{Couche Infrastructure}
+La couche \texttt{CarRental.Infrastructure} fournit les implémentations concrètes des services :
+
+\textbf{Services techniques :}
+\begin{itemize}
+    \item \texttt{EmailService} : Envoi d'emails avec MailKit (mode dev et production)
+    \item \texttt{PdfService} : Génération de PDF avec QuestPDF (confirmations, factures)
+    \item \texttt{QrCodeService} : Génération de codes QR pour vérification
+    \item \texttt{CsvImportService/CsvExportService} : Import/export de données
+    \item \texttt{PasswordHasher} : Hachage sécurisé avec BCrypt
+    \item \texttt{TokenService} : Génération et validation de tokens JWT
+\end{itemize}
+
+\subsubsection{Couche Persistence}
+La couche \texttt{CarRental.Persistence} gère l'accès aux données :
+
+\textbf{Technologies :}
+\begin{itemize}
+    \item Entity Framework Core 9.0
+    \item MySQL comme SGBD
+    \item Pattern Repository pour l'abstraction de l'accès aux données
+    \item Pattern Unit of Work pour les transactions
+\end{itemize}
+
+\textbf{Configurations Fluent API :} Chaque entité possède sa configuration (BookingConfiguration, VehicleConfiguration, etc.) définissant les contraintes, relations et index.
+
+\subsection{Patterns de conception utilisés}
+
+\subsubsection{Repository Pattern}
+Abstraction de la couche d'accès aux données permettant de découpler la logique métier de la persistance.
+
+\subsubsection{Unit of Work Pattern}
+Coordination des modifications sur plusieurs repositories dans une transaction unique.
+
+\subsubsection{Dependency Injection}
+Injection de dépendances native de .NET Core pour gérer le cycle de vie des services et faciliter les tests.
+
+\subsubsection{Result Pattern}
+Type générique \texttt{Result<T>} pour encapsuler les succès et les erreurs de manière explicite sans exceptions.
+
+\subsubsection{MVVM (Model-View-ViewModel)}
+Utilisé dans l'application Desktop WPF avec séparation claire entre la logique de présentation et l'interface utilisateur.
+
+\section{Fonctionnalités Implémentées}
+
+\subsection{Gestion des utilisateurs et authentification}
+
+\subsubsection{Inscription et authentification}
+\begin{itemize}
+    \item Inscription avec validation d'email (code à 6 chiffres)
+    \item Connexion avec JWT (JSON Web Tokens)
+    \item Réinitialisation de mot de passe par email
+    \item Hachage sécurisé des mots de passe avec BCrypt
+    \item Gestion des rôles (Client, Employee)
+\end{itemize}
+
+\subsubsection{Profils utilisateurs}
+\begin{itemize}
+    \item Profil client avec informations de permis de conduire
+    \item Profil employé avec département et poste
+    \item Mise à jour des informations personnelles
+\end{itemize}
+
+\subsection{Gestion des véhicules}
+
+\subsubsection{CRUD des véhicules}
+\begin{itemize}
+    \item Création de véhicules avec types (Sedan, SUV, Truck, etc.)
+    \item Modification des informations et du statut
+    \item Suppression logique des véhicules
+    \item Upload d'images multiples par véhicule
+    \item Gestion des tarifs par véhicule ou type
+\end{itemize}
+
+\subsubsection{Recherche et disponibilité}
+\begin{itemize}
+    \item Recherche de véhicules disponibles par plage de dates
+    \item Filtrage par type de véhicule et prix maximum
+    \item Détection automatique des conflits de réservation
+    \item Calcul de disponibilité en temps réel
+\end{itemize}
+
+\subsection{Système de réservation}
+
+\subsubsection{Processus de réservation}
+\begin{itemize}
+    \item Sélection de véhicule avec dates de début et fin
+    \item Validation de la disponibilité
+    \item Calcul automatique du montant total
+    \item Confirmation par email avec PDF
+    \item Génération de code QR pour vérification
+\end{itemize}
+
+\subsubsection{Gestion des réservations}
+\begin{itemize}
+    \item Annulation avec politique (minimum 24h avant le début)
+    \item Modification des dates (sous conditions)
+    \item Suivi du statut (Pending, Confirmed, Completed, Cancelled)
+    \item Calcul de frais de retard automatique
+    \item Historique complet des réservations
+\end{itemize}
+
+\subsection{Gestion des paiements}
+
+\begin{itemize}
+    \item Traitement des paiements avec statut
+    \item Support de multiples méthodes de paiement
+    \item Génération de factures PDF
+    \item Référence de transaction unique
+    \item Historique des paiements par client
+\end{itemize}
+
+\subsection{Maintenance des véhicules}
+
+\begin{itemize}
+    \item Planification de maintenance préventive
+    \item Suivi des interventions avec coûts
+    \item Historique de maintenance par véhicule
+    \item Mise à jour automatique du statut du véhicule
+    \item Calcul du kilométrage depuis dernière maintenance
+\end{itemize}
+
+\subsection{Tableau de bord et statistiques}
+
+\begin{itemize}
+    \item Vue d'ensemble en temps réel :
+    \begin{itemize}
+        \item Total de véhicules et répartition par statut
+        \item Nombre de clients et réservations actives
+        \item Revenus total et mensuel
+    \end{itemize}
+    \item Dernières activités et réservations récentes
+    \item Statistiques de performance
+\end{itemize}
+
+\subsection{Génération de documents}
+
+\begin{itemize}
+    \item Confirmations de réservation en PDF avec QR code
+    \item Factures détaillées avec calcul de taxes
+    \item Export CSV des véhicules et réservations
+    \item Import de véhicules en masse via CSV
+    \item Emails HTML formatés avec templates
+\end{itemize}
+
+\section{Technologies et Outils Utilisés}
+
+\subsection{Framework et langages}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Technologie} & \textbf{Version/Description} \\ \midrule
+.NET & 9.0 \\
+C\# & 12.0 \\
+ASP.NET Core & 9.0 (Web MVC et Web API) \\
+WPF & .NET 9.0 (Application Desktop) \\
+Entity Framework Core & 9.0 \\ \bottomrule
+\end{tabular}
+\caption{Technologies principales}
+\end{table}
+
+\subsection{Packages NuGet importants}
+
+\textbf{Couche Infrastructure :}
+\begin{itemize}
+    \item \texttt{QuestPDF} : Génération de PDF professionnels
+    \item \texttt{QRCoder} : Création de codes QR
+    \item \texttt{MailKit} : Envoi d'emails SMTP
+    \item \texttt{BCrypt.Net-Next} : Hachage de mots de passe
+\end{itemize}
+
+\textbf{Couche API :}
+\begin{itemize}
+    \item \texttt{Microsoft.AspNetCore.Authentication.JwtBearer} : Authentification JWT
+    \item \texttt{Scalar.AspNetCore} : Documentation API interactive
+    \item \texttt{Swashbuckle/OpenAPI} : Spécification OpenAPI
+\end{itemize}
+
+\textbf{Couche Persistence :}
+\begin{itemize}
+    \item \texttt{Pomelo.EntityFrameworkCore.MySql} : Provider MySQL pour EF Core
+    \item \texttt{Microsoft.EntityFrameworkCore.Tools} : Migrations
+\end{itemize}
+
+\subsection{Base de données}
+
+\textbf{MySQL} avec les caractéristiques suivantes :
+\begin{itemize}
+    \item 14 tables principales
+    \item Relations many-to-many et one-to-many bien définies
+    \item Index sur colonnes fréquemment interrogées
+    \item Contraintes de clés étrangères avec comportement CASCADE/RESTRICT
+    \item Support des audits avec \texttt{CreatedAt} et \texttt{UpdatedAt}
+\end{itemize}
+
+\subsection{Architecture de présentation}
+
+\subsubsection{Web API (Backend)}
+\begin{itemize}
+    \item RESTful API avec 12 contrôleurs
+    \item Documentation Scalar avec thème BluePlanet
+    \item Middleware d'exception globale
+    \item CORS configuré pour frontend
+    \item Authentification JWT avec expiration
+\end{itemize}
+
+\subsubsection{Web MVC (Frontend Client)}
+\begin{itemize}
+    \item ASP.NET Core MVC
+    \item Authentification par cookies
+    \item Localisation en français (fr-FR)
+    \item Communication avec API via HttpClient
+    \item Session management pour l'état utilisateur
+\end{itemize}
+
+\subsubsection{Application Desktop (WPF)}
+\begin{itemize}
+    \item Interface riche pour employés
+    \item Pattern MVVM avec \texttt{ViewModelBase}
+    \item Navigation entre vues avec \texttt{NavigationService}
+    \item Communication API avec \texttt{ApiClient}
+    \item Gestion d'état avec \texttt{AppState} et \texttt{SessionManager}
+\end{itemize}
+
+\section{Structure du Projet}
+
+\subsection{Organisation des dossiers}
+
+\begin{lstlisting}[language=bash, caption=Structure du projet]
+CarRental/
+|-- CarRental.Core/              # Domain Layer
+|   |-- Entities/                # Entites metier
+|   |-- ValueObjects/            # Value Objects
+|   |-- Enums/                   # Enumerations
+|   |-- Interfaces/              # Interfaces abstraites
+|
+|-- CarRental.Application/       # Application Layer
+|   |-- Services/                # Services applicatifs
+|   |-- Interfaces/              # Interfaces de services
+|   |-- DTOs/                    # Data Transfer Objects
+|   |-- Common/                  # Modeles communs (Result)
+|
+|-- CarRental.Infrastructure/    # Infrastructure Layer
+|   |-- Services/                # Services techniques
+|   |-- Security/                # Securite (JWT, Hash)
+|   |-- Settings/                # Configuration
+|
+|-- CarRental.Persistence/       # Data Access Layer
+|   |-- Configurations/          # EF Configurations
+|   |-- Repositories/            # Implementations Repository
+|   |-- Migrations/              # Migrations EF Core
+|   |-- UnitOfWork/              # Pattern UnitOfWork
+|   |-- Seed/                    # Donnees initiales
+|
+|-- CarRental.WebApi/            # API REST
+|   |-- Controllers/             # Controleurs API
+|   |-- Middleware/              # Middleware personnalises
+|
+|-- CarRental.Web/               # Application Web MVC
+|   |-- Controllers/             # Controleurs MVC
+|   |-- Views/                   # Vues Razor
+|   |-- Models/                  # ViewModels
+|   |-- wwwroot/                 # Ressources statiques
+|
+|-- CarRental.Desktop/           # Application WPF
+    |-- Views/                   # Vues XAML
+    |-- ViewModels/              # ViewModels MVVM
+    |-- Services/                # Services client API
+    |-- Controls/                # Controles personnalises
+\end{lstlisting}
+
+\subsection{Flux de dépendances}
+
+Les dépendances suivent strictement les règles de Clean Architecture :
+
+\begin{center}
+\texttt{Presentation \textrightarrow Application \textrightarrow Infrastructure/Persistence \textrightarrow Core}
+\end{center}
+
+Seule la couche Core n'a aucune dépendance externe. Les couches externes dépendent toujours des couches internes via des interfaces.
+
+\section{Sécurité}
+
+\subsection{Authentification et autorisation}
+
+\begin{itemize}
+    \item \textbf{JWT (JSON Web Tokens)} pour l'authentification stateless
+    \item Configuration avec Issuer, Audience et SecretKey
+    \item Expiration des tokens après 1 heure
+    \item Claims-based authorization avec rôles
+    \item Refresh token non implémenté (amélioration future)
+\end{itemize}
+
+\subsection{Protection des données}
+
+\begin{itemize}
+    \item Hachage BCrypt avec salt automatique
+    \item Aucun mot de passe stocké en clair
+    \item Validation des entrées côté serveur
+    \item Protection CSRF dans Web MVC
+    \item Tokens de réinitialisation avec expiration
+\end{itemize}
+
+\subsection{Bonnes pratiques}
+
+\begin{itemize}
+    \item HTTPS obligatoire en production
+    \item CORS configuré pour origines autorisées uniquement
+    \item Logging des tentatives d'authentification
+    \item Rate limiting (à améliorer)
+    \item Validation des DTOs avec Data Annotations
+\end{itemize}
+
+
+\section{Conclusion}
+
+Ce projet de système de gestion de location de voitures démontre une maîtrise complète de l'écosystème .NET et des bonnes pratiques de développement logiciel. L'architecture Clean Architecture adoptée garantit la maintenabilité et l'évolutivité du système.
+
+\subsection{Compétences acquises}
+
+Au cours de ce projet, notre équipe a développé et renforcé les compétences suivantes :
+
+\begin{itemize}
+    \item \textbf{Architecture logicielle} : Conception et implémentation d'une Clean Architecture
+    \item \textbf{Entity Framework Core} : Modélisation de données, migrations, relations complexes
+    \item \textbf{ASP.NET Core} : Développement d'API RESTful et applications Web MVC
+    \item \textbf{WPF et MVVM} : Création d'applications Desktop avec séparation UI/logique
+    \item \textbf{Sécurité} : Authentification JWT, hachage de mots de passe, autorisation
+    \item \textbf{Patterns de conception} : Repository, Unit of Work, Dependency Injection, Result
+    \item \textbf{Travail en équipe} : Collaboration, versioning avec Git, répartition des tâches
+\end{itemize}
+
+\subsection{Résultats obtenus}
+
+Nous avons livré un système fonctionnel comprenant :
+\begin{itemize}
+    \item Une API REST complète avec 12 contrôleurs et documentation Scalar
+    \item Une application Web pour les clients avec 5 contrôleurs MVC
+    \item Une application Desktop pour les employés avec 15+ vues
+    \item 16 entités métier avec relations et validations
+    \item Plus de 25 DTOs pour la communication inter-couches
+    \item Services complets (Email, PDF, QR, Import/Export)
+\end{itemize}
+
+\subsection{Perspectives}
+
+Ce projet constitue une base solide pour une application de production. Les améliorations futures identifiées (tests automatisés, intégrations de paiement, application mobile) permettraient de transformer ce prototype en une solution commerciale viable.
+
+Notre équipe est fière du résultat obtenu et reconnaît que ce projet a été une expérience d'apprentissage enrichissante, nous préparant efficacement aux défis du développement logiciel professionnel.
+
+\vspace{1cm}
+
+\begin{center}
+\textit{Semestre 1 - 2026}
+\end{center}
+
+\end{document}

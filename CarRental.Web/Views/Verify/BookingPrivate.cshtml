@@ -1,0 +1,156 @@
+@{
+    ViewData["Title"] = "Authentication Required";
+    var bookingId = ViewBag.BookingId;
+}
+
+<style>
+    .auth-container {
+        max-width: 600px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 40px 30px;
+    }
+
+    .auth-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 15px;
+    }
+
+    .auth-message {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .info-box {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: left;
+        margin: 30px 0;
+    }
+
+    .info-box h6 {
+        color: #1e40af;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .info-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #1e3a8a;
+    }
+
+    .security-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #f0fdf4;
+        padding: 10px 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border: 1px solid #86efac;
+    }
+
+    .security-badge i {
+        color: #16a34a;
+        font-size: 18px;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-icon">🔐</div>
+        <h1 class="auth-title">Authentication Required</h1>
+        <p class="auth-message">
+            Booking <strong>#@bookingId</strong> exists in our system, but you need to login to view the details.
+        </p>
+
+        <div class="security-badge">
+            <i class="bi bi-shield-check"></i>
+            <span style="color: #065f46; font-weight: 600;">This booking is protected</span>
+        </div>
+
+        <div class="info-box">
+            <h6>🔒 Why do I need to login?</h6>
+            <ul>
+                <li>To protect your personal information</li>
+                <li>To ensure booking details remain confidential</li>
+                <li>To verify you are the booking owner</li>
+                <li>To maintain security and privacy standards</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                <strong>Login to access your booking details</strong>
+            </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Booking", "Verify", new { id = bookingId })" class="btn btn-primary btn-lg">
+                    🔐 Login to Your Account
+                </a>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary">
+                    ✨ Create Account
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">
+                <strong>Don't have access?</strong>
+            </p>
+            <p style="font-size: 13px; color: #9ca3af; margin: 0;">
+                If this booking belongs to you but you can't access it, please contact support:<br/>
+                📧 <a href="mailto:support@carrental.ma" style="color: #667eea;">support@carrental.ma</a>
+                <span style="margin: 0 10px;">|</span>
+                📱 <a href="tel:+212600000000" style="color: #667eea;">+212 6XX XXX XXX</a>
+            </p>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-link" style="color: #6b7280;">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add subtle animation on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.auth-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+}

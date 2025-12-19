@@ -117,7 +117,7 @@ namespace CarRental.WebApi.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<BookingDto>> Create([FromBody] CreateBookingDto dto)
         {
-            _logger.LogInformation("Creating booking for client {ClientId}, vehicle {VehicleId}", 
+            _logger.LogInformation("Creating booking for client {ClientId}, vehicle {VehicleId}",
                 dto.ClientId, dto.VehicleId);
 
             var result = await _bookingService.CreateBookingAsync(dto);
@@ -138,6 +138,48 @@ namespace CarRental.WebApi.Controllers
         }
 
         /// <summary>
+        /// Confirm a pending booking
+        /// </summary>
+        /// <param name="id">Booking ID</param>
+        /// <returns>Confirmed booking</returns>
+        /// <response code="200">Booking confirmed successfully</response>
+        /// <response code="400">Cannot confirm booking</response>
+        /// <response code="404">Booking not found</response>
+        [HttpPut("{id:long}/confirm")]
+        [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BookingDto>> Confirm(long id)
+        {
+            _logger.LogInformation("Confirming booking {BookingId}", id);
+
+            var result = await _bookingService.ConfirmBookingAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                if (result.Error.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    return NotFound(new ProblemDetails
+                    {
+                        Title = "Booking Not Found",
+                        Detail = result.Error,
+                        Status = StatusCodes.Status404NotFound
+                    });
+                }
+
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Confirmation Failed",
+                    Detail = result.Error,
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
+            _logger.LogInformation("Booking {BookingId} confirmed successfully", id);
+            return Ok(result.Value);
+        }
+
+        /// <summary>
         /// Cancel an existing booking
         /// </summary>
         /// <param name="id">Booking ID</param>
@@ -152,7 +194,7 @@ namespace CarRental.WebApi.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Cancel(long id, [FromQuery] long clientId)
         {
-            _logger.LogInformation("Cancellation request for booking {BookingId} by client {ClientId}", 
+            _logger.LogInformation("Cancellation request for booking {BookingId} by client {ClientId}",
                 id, clientId);
 
             var result = await _bookingService.CancelBookingAsync(id, clientId);
@@ -237,4 +279,3 @@ namespace CarRental.WebApi.Controllers
         }
     }
 }
-

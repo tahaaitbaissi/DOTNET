@@ -32,7 +32,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -42,22 +42,63 @@
                 <form method="post" asp-action="Create" asp-controller="Location">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="vehiculeId" value="@Model.Id" />
-                    
+
                     <div class="mb-3">
                         <label for="dateDebut" class="form-label">Date de début</label>
-                        <input type="date" class="form-control" id="dateDebut" name="dateDebut" 
+                        <input type="date" class="form-control" id="dateDebut" name="dateDebut"
                                min="@DateTime.Now.ToString("yyyy-MM-dd")" required />
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="dateFin" class="form-label">Date de fin</label>
-                        <input type="date" class="form-control" id="dateFin" name="dateFin" 
+                        <input type="date" class="form-control" id="dateFin" name="dateFin"
                                min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <label for="pickupLocation" class="form-label">
+                            <i class="bi bi-geo-alt-fill text-success"></i> Lieu de prise en charge
+                        </label>
+                        <input type="text" class="form-control" id="pickupLocation" name="pickupLocation"
+                               placeholder="Ex: Aéroport Mohammed V, Casablanca" required />
+                        <small class="form-text text-muted">Où souhaitez-vous récupérer le véhicule ?</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dropoffLocation" class="form-label">
+                            <i class="bi bi-geo-alt text-danger"></i> Lieu de restitution
+                        </label>
+                        <input type="text" class="form-control" id="dropoffLocation" name="dropoffLocation"
+                               placeholder="Ex: Gare Casa-Voyageurs, Casablanca" required />
+                        <small class="form-text text-muted">Où allez-vous restituer le véhicule ?</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-pin-map"></i> Lieux populaires
+                        </label>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Aéroport Mohammed V, Casablanca')">
+                                ✈️ Aéroport Mohammed V
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Gare Casa-Voyageurs, Casablanca')">
+                                🚂 Gare Casa-Voyageurs
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Centre-Ville, Rabat')">
+                                🏙️ Centre-Ville Rabat
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setLocation('pickup', 'Aéroport Marrakech-Menara')">
+                                ✈️ Aéroport Marrakech
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="setSameLocation()">
+                                ↔️ Même lieu pour les deux
+                            </button>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-success w-100 mb-2">Confirmer la réservation</button>
                 </form>
-                
+
                 <a asp-controller="Vehicule" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary w-100">
                     Annuler
                 </a>
@@ -65,3 +106,24 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function setLocation(field, value) {
+            if (field === 'pickup') {
+                document.getElementById('pickupLocation').value = value;
+            } else if (field === 'dropoff') {
+                document.getElementById('dropoffLocation').value = value;
+            }
+        }
+
+        function setSameLocation() {
+            const pickupValue = document.getElementById('pickupLocation').value;
+            if (pickupValue) {
+                document.getElementById('dropoffLocation').value = pickupValue;
+            } else {
+                alert('Veuillez d\'abord saisir le lieu de prise en charge');
+            }
+        }
+    </script>
+}

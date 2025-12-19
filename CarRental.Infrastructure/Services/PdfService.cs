@@ -1,5 +1,7 @@
 using CarRental.Core.Entities;
 using CarRental.Core.Interfaces.Services;
+using CarRental.Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -18,6 +20,7 @@ namespace CarRental.Infrastructure.Services
     public class PdfService : IPdfService
     {
         private readonly IQrCodeService _qrCodeService;
+        private readonly AppSettings _appSettings;
 
         static PdfService()
         {
@@ -25,20 +28,21 @@ namespace CarRental.Infrastructure.Services
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public PdfService(IQrCodeService qrCodeService)
+        public PdfService(IQrCodeService qrCodeService, IOptions<AppSettings> appSettings)
         {
             _qrCodeService = qrCodeService;
+            _appSettings = appSettings.Value;
         }
 
         public async Task<byte[]> GenerateBookingConfirmationPdfAsync(Booking booking)
         {
             var clientName = booking.Client?.User?.FullName ?? "Valued Customer";
-            var vehicleName = booking.Vehicle != null 
-                ? $"{booking.Vehicle.Year} {booking.Vehicle.Make} {booking.Vehicle.Model}" 
+            var vehicleName = booking.Vehicle != null
+                ? $"{booking.Vehicle.Year} {booking.Vehicle.Make} {booking.Vehicle.Model}"
                 : "Vehicle";
 
-            // Generate QR Code
-            var verifyUrl = $"https://carrental-web.com/verify/booking/{booking.Id}";
+            // Generate QR Code pointing to verification page
+            var verifyUrl = $"{_appSettings.WebAppUrl}/verify/booking/{booking.Id}";
             var qrCodeBytes = await _qrCodeService.GenerateQrCodeAsync(verifyUrl);
 
             var document = PdfDocument.Create(container =>
@@ -69,8 +73,8 @@ namespace CarRental.Infrastructure.Services
         {
             var booking = payment.Booking;
             var clientName = booking?.Client?.User?.FullName ?? "Customer";
-            var vehicleName = booking?.Vehicle != null 
-                ? $"{booking.Vehicle.Year} {booking.Vehicle.Make} {booking.Vehicle.Model}" 
+            var vehicleName = booking?.Vehicle != null
+                ? $"{booking.Vehicle.Year} {booking.Vehicle.Make} {booking.Vehicle.Model}"
                 : "Vehicle";
 
             var document = PdfDocument.Create(container =>
@@ -99,69 +103,75 @@ namespace CarRental.Infrastructure.Services
 
         private static void ComposeHeader(IContainer container)
         {
-            container.Row(row =>
+            container.Column(col =>
             {
-                row.RelativeItem().Column(column =>
+                col.Item().Row(row =>
                 {
-                    column.Item()
-                        .Text("🚗 CAR RENTAL")
-                        .Bold()
-                        .FontSize(24)
-                        .FontColor(Colors.Blue.Darken2);
+                    row.RelativeItem().Column(column =>
+                    {
+                        column.Item()
+                            .Text("🚗 CAR RENTAL")
+                            .Bold()
+                            .FontSize(24)
+                            .FontColor(Colors.Blue.Darken2);
 
-                    column.Item()
-                        .Text("Your Journey, Our Wheels")
-                        .FontSize(10)
-                        .FontColor(Colors.Grey.Medium);
+                        column.Item()
+                            .Text("Your Journey, Our Wheels")
+                            .FontSize(10)
+                            .FontColor(Colors.Grey.Medium);
+                    });
+
+                    row.ConstantItem(120).Column(column =>
+                    {
+                        column.Item().AlignRight().Text("Car Rental Inc.").Bold();
+                        column.Item().AlignRight().Text("123 Main Street");
+                        column.Item().AlignRight().Text("City, State 12345");
+                        column.Item().AlignRight().Text("contact@carrental.com");
+                    });
                 });
 
-                row.ConstantItem(120).Column(column =>
-                {
-                    column.Item().AlignRight().Text("Car Rental Inc.").Bold();
-                    column.Item().AlignRight().Text("123 Main Street");
-                    column.Item().AlignRight().Text("City, State 12345");
-                    column.Item().AlignRight().Text("contact@carrental.com");
-                });
+                col.Item().PaddingBottom(20);
             });
-
-            container.PaddingBottom(20);
         }
 
         private static void ComposeHeaderWithQr(IContainer container, byte[] qrBytes)
         {
-            container.Row(row =>
+            container.Column(col =>
             {
-                row.RelativeItem().Column(column =>
+                col.Item().Row(row =>
                 {
-                    column.Item()
-                        .Text("🚗 CAR RENTAL")
-                        .Bold()
-                        .FontSize(24)
-                        .FontColor(Colors.Blue.Darken2);
+                    row.RelativeItem().Column(column =>
+                    {
+                        column.Item()
+                            .Text("🚗 CAR RENTAL")
+                            .Bold()
+                            .FontSize(24)
+                            .FontColor(Colors.Blue.Darken2);
 
-                    column.Item()
-                        .Text("Your Journey, Our Wheels")
-                        .FontSize(10)
-                        .FontColor(Colors.Grey.Medium);
+                        column.Item()
+                            .Text("Your Journey, Our Wheels")
+                            .FontSize(10)
+                            .FontColor(Colors.Grey.Medium);
+                    });
+
+                    // QR Code
+                    if (qrBytes != null && qrBytes.Length > 0)
+                    {
+                        row.ConstantItem(80).AlignRight().PaddingRight(10).Image(qrBytes);
+                    }
+
+                    row.ConstantItem(150).Column(column =>
+                    {
+                        column.Item().AlignRight().Text("Car Rental Inc.").Bold();
+                        column.Item().AlignRight().Text("123 Main Street");
+                        column.Item().AlignRight().Text("City, State 12345");
+                        column.Item().AlignRight().Text("contact@carrental.com");
+                        column.Item().AlignRight().Text("Scan to Verify").FontSize(8).Italic();
+                    });
                 });
 
-                // QR Code
-                if (qrBytes != null && qrBytes.Length > 0)
-                {
-                    row.ConstantItem(80).AlignRight().PaddingRight(10).Image(qrBytes);
-                }
-
-                row.ConstantItem(150).Column(column =>
-                {
-                    column.Item().AlignRight().Text("Car Rental Inc.").Bold();
-                    column.Item().AlignRight().Text("123 Main Street");
-                    column.Item().AlignRight().Text("City, State 12345");
-                    column.Item().AlignRight().Text("contact@carrental.com");
-                    column.Item().AlignRight().Text("Scan to Verify").FontSize(8).Italic();
-                });
+                col.Item().PaddingBottom(20);
             });
-
-            container.PaddingBottom(20);
         }
 
         private static void ComposeBookingContent(IContainer container, Booking booking, string clientName, string vehicleName)

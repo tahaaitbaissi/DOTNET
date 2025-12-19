@@ -11,12 +11,12 @@ namespace CarRental.Web.Controllers
     public class LocationController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        
+
         public LocationController(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
         }
-        
+
         private long GetCurrentClientId()
         {
             // We stored ClientId in claims during login
@@ -43,13 +43,13 @@ namespace CarRental.Web.Controllers
             }
             return client;
         }
-        
+
         public async Task<IActionResult> Index()
         {
             var clientId = GetCurrentClientId();
             var client = CreateClientWithAuth();
             var response = await client.GetAsync($"api/Bookings/client/{clientId}");
-            
+
             if (response.IsSuccessStatusCode)
             {
                  var bookings = await response.Content.ReadFromJsonAsync<List<BookingDto>>();
@@ -57,46 +57,58 @@ namespace CarRental.Web.Controllers
             }
             return View(new List<BookingDto>());
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> Create(int vehiculeId)
         {
             var client = CreateClientWithAuth();
             // Fetch vehicle details to show in view
             var vehicule = await client.GetFromJsonAsync<VehicleDto>($"api/vehicles/{vehiculeId}");
-            
+
             if (vehicule == null)
             {
                 TempData["Error"] = "Véhicule introuvable.";
                 return RedirectToAction("Index", "Vehicule");
             }
-            
+
             if (vehicule.Status != "Available") // Simplified check
             {
                 TempData["Error"] = "Ce véhicule n'est pas disponible.";
                 return RedirectToAction("Details", "Vehicule", new { id = vehiculeId });
             }
-            
+
             return View(vehicule);
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int vehiculeId, DateTime dateDebut, DateTime dateFin)
+        public async Task<IActionResult> Create(int vehiculeId, DateTime dateDebut, DateTime dateFin, string pickupLocation, string dropoffLocation)
         {
             try
             {
                 var clientId = GetCurrentClientId();
-                
+
                 if (dateDebut < DateTime.Today)
                 {
                     TempData["Error"] = "La date de début ne peut pas être dans le passé.";
                     return RedirectToAction("Create", new { vehiculeId });
                 }
-                
+
                 if (dateFin <= dateDebut)
                 {
                     TempData["Error"] = "La date de fin doit être postérieure à la date de début.";
+                    return RedirectToAction("Create", new { vehiculeId });
+                }
+
+                if (string.IsNullOrWhiteSpace(pickupLocation))
+                {
+                    TempData["Error"] = "Le lieu de prise en charge est requis.";
+                    return RedirectToAction("Create", new { vehiculeId });
+                }
+
+                if (string.IsNullOrWhiteSpace(dropoffLocation))
+                {
+                    TempData["Error"] = "Le lieu de restitution est requis.";
                     return RedirectToAction("Create", new { vehiculeId });
                 }
 
@@ -105,7 +117,9 @@ namespace CarRental.Web.Controllers
                     VehicleId = vehiculeId,
                     ClientId = clientId,
                     StartDate = dateDebut,
-                    EndDate = dateFin
+                    EndDate = dateFin,
+                    PickUpLocation = pickupLocation,
+                    DropOffLocation = dropoffLocation
                 };
 
                 var client = CreateClientWithAuth();
@@ -117,7 +131,7 @@ namespace CarRental.Web.Controllers
                      TempData["Success"] = "Votre demande de location a été enregistrée avec succès!";
                      return RedirectToAction("Details", new { id = booking.Id });
                 }
-                
+
                 var error = await response.Content.ReadAsStringAsync();
                 TempData["Error"] = "Erreur lors de la réservation: " + error;
                 return RedirectToAction("Create", new { vehiculeId });
@@ -128,7 +142,7 @@ namespace CarRental.Web.Controllers
                 return RedirectToAction("Create", new { vehiculeId });
             }
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
@@ -138,13 +152,13 @@ namespace CarRental.Web.Controllers
                 var clientId = GetCurrentClientId();
                 var client = CreateClientWithAuth();
                 var response = await client.PutAsync($"api/Bookings/{id}/cancel?clientId={clientId}", null);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["Success"] = "Réservation annulée avec succès.";
                     return RedirectToAction("Index");
                 }
-                
+
                 TempData["Error"] = "Impossible d'annuler la réservation.";
                 return RedirectToAction("Details", new { id });
             }
@@ -154,18 +168,18 @@ namespace CarRental.Web.Controllers
                 return RedirectToAction("Details", new { id });
             }
         }
-        
+
         public async Task<IActionResult> Details(int id)
         {
              var client = CreateClientWithAuth();
              var response = await client.GetAsync($"api/Bookings/{id}");
-             
+
              if (response.IsSuccessStatusCode)
              {
                  var booking = await response.Content.ReadFromJsonAsync<BookingDto>();
                  return View(booking);
              }
-             
+
              return NotFound();
         }
 

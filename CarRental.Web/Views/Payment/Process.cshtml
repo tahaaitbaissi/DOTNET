@@ -1,0 +1,609 @@
+@model CarRental.Web.Models.Api.ProcessPaymentDto
+
+@{
+    ViewData["Title"] = "Process Payment";
+    var booking = ViewBag.Booking as CarRental.Web.Models.Api.BookingDto;
+}
+
+<style>
+    .payment-container {
+        max-width: 900px;
+        margin: 40px auto;
+    }
+
+    .payment-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .payment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .payment-header h2 {
+        margin: 0 0 10px 0;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .payment-body {
+        padding: 40px;
+    }
+
+    .booking-summary {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-left: 4px solid #667eea;
+    }
+
+    .booking-summary h5 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    .booking-detail {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .booking-detail:last-child {
+        border-bottom: none;
+    }
+
+    .booking-detail-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .booking-detail-value {
+        color: #212529;
+        font-weight: 600;
+    }
+
+    .amount-highlight {
+        background: #e8f5e9;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+        border: 2px solid #4caf50;
+    }
+
+    .amount-highlight .amount {
+        font-size: 42px;
+        font-weight: 700;
+        color: #2e7d32;
+        margin: 10px 0;
+    }
+
+    .payment-methods {
+        display: flex;
+        gap: 15px;
+        margin: 25px 0;
+    }
+
+    .payment-method-btn {
+        flex: 1;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .payment-method-btn:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .payment-method-btn.active {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+
+    .payment-method-btn input[type="radio"] {
+        display: none;
+    }
+
+    .payment-method-btn .icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .payment-method-btn .label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .card-display {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        margin: 25px 0;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        min-height: 180px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-display::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+
+    .card-chip {
+        width: 50px;
+        height: 40px;
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .card-number {
+        font-size: 22px;
+        letter-spacing: 3px;
+        margin: 25px 0;
+        font-family: 'Courier New', monospace;
+    }
+
+    .card-holder-expire {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .card-holder, .card-expire {
+        font-size: 14px;
+    }
+
+    .card-label {
+        font-size: 10px;
+        opacity: 0.7;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        outline: none;
+    }
+
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px;
+        background: #e8f5e9;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .secure-badge i {
+        color: #4caf50;
+        font-size: 24px;
+    }
+
+    .secure-badge span {
+        color: #2e7d32;
+        font-weight: 600;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 16px 40px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 10px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-pay:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-pay:active {
+        transform: translateY(0);
+    }
+
+    .card-icons {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .card-icon {
+        width: 50px;
+        height: 32px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6c757d;
+    }
+</style>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-header">
+            <h2>💳 Complete Your Payment</h2>
+            <p style="margin: 0; opacity: 0.9;">Secure payment processing</p>
+        </div>
+
+        <div class="payment-body">
+            @if (booking != null)
+            {
+                <!-- Booking Summary -->
+                <div class="booking-summary">
+                    <h5>📋 Booking Summary</h5>
+                    <div class="booking-detail">
+                        <span class="booking-detail-label">Booking Reference</span>
+                        <span class="booking-detail-value">#@booking.Id</span>
+                    </div>
+                    <div class="booking-detail">
+                        <span class="booking-detail-label">Vehicle</span>
+                        <span class="booking-detail-value">@booking.VehicleName</span>
+                    </div>
+                    <div class="booking-detail">
+                        <span class="booking-detail-label">Rental Period</span>
+                        <span class="booking-detail-value">
+                            @booking.StartDate.ToString("MMM dd") - @booking.EndDate.ToString("MMM dd, yyyy")
+                            (@((booking.EndDate - booking.StartDate).Days) days)
+                        </span>
+                    </div>
+                    <div class="booking-detail">
+                        <span class="booking-detail-label">Status</span>
+                        <span class="booking-detail-value">@booking.Status</span>
+                    </div>
+                </div>
+
+                <!-- Amount to Pay -->
+                <div class="amount-highlight">
+                    <div style="font-size: 14px; color: #6c757d; font-weight: 600;">TOTAL AMOUNT</div>
+                    <div class="amount">@booking.TotalAmount.ToString("C")</div>
+                    <div style="font-size: 13px; color: #6c757d;">Including all taxes and fees</div>
+                </div>
+            }
+
+            <!-- Payment Form -->
+            <form asp-action="Process" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="BookingId" />
+                <input type="hidden" asp-for="Amount" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <!-- Payment Methods -->
+                <div class="form-group">
+                    <label class="form-label">Select Payment Method</label>
+                    <div class="payment-methods">
+                        <label class="payment-method-btn active">
+                            <input type="radio" asp-for="PaymentMethod" value="CreditCard" checked />
+                            <div class="icon">💳</div>
+                            <div class="label">Credit Card</div>
+                        </label>
+                        <label class="payment-method-btn">
+                            <input type="radio" asp-for="PaymentMethod" value="DebitCard" />
+                            <div class="icon">🏦</div>
+                            <div class="label">Debit Card</div>
+                        </label>
+                        <label class="payment-method-btn">
+                            <input type="radio" asp-for="PaymentMethod" value="Cash" />
+                            <div class="icon">💵</div>
+                            <div class="label">Cash</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Cash Payment Notice (hidden by default) -->
+                <div id="cashNotice" style="display: none;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 15px; padding: 30px; color: white; text-align: center; margin: 25px 0;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">💵</div>
+                        <h4 style="margin: 0 0 10px 0; font-weight: 700;">Cash Payment Selected</h4>
+                        <p style="margin: 0; opacity: 0.9; font-size: 15px;">
+                            Please bring the exact amount in cash when picking up your vehicle.<br />
+                            Payment will be collected at our office before vehicle handover.
+                        </p>
+                    </div>
+                </div>
+
+                <div id="cardFields">
+                    <!-- Card Preview -->
+                    <div class="card-display">
+                        <div class="card-chip"></div>
+                        <div class="card-number" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+                        <div class="card-holder-expire">
+                            <div class="card-holder">
+                                <div class="card-label">Card Holder</div>
+                                <div id="cardHolderDisplay">YOUR NAME</div>
+                            </div>
+                            <div class="card-expire">
+                                <div class="card-label">Expires</div>
+                                <div id="cardExpiryDisplay">MM/YY</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cardholder Name -->
+                    <div class="form-group">
+                        <label asp-for="CardholderName" class="form-label"></label>
+                        <input asp-for="CardholderName" class="form-control" placeholder="John Doe" id="cardholderNameInput" name="CardholderName" />
+                        <span asp-validation-for="CardholderName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Card Number -->
+                    <div class="form-group">
+                        <label asp-for="CardNumber" class="form-label"></label>
+                        <input asp-for="CardNumber" class="form-control" placeholder="1234 5678 9012 3456"
+                               maxlength="19" id="cardNumberInput" name="CardNumber" />
+                        <div class="card-icons">
+                            <div class="card-icon">VISA</div>
+                            <div class="card-icon">MC</div>
+                            <div class="card-icon">AMEX</div>
+                        </div>
+                        <span asp-validation-for="CardNumber" class="text-danger"></span>
+                    </div>
+
+                    <!-- Expiry and CVV -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="ExpiryMonth" class="form-label"></label>
+                                <select asp-for="ExpiryMonth" class="form-control" id="expiryMonthInput" name="ExpiryMonth">
+                                    <option value="">MM</option>
+                                    @for (int i = 1; i <= 12; i++)
+                                    {
+                                        <option value="@i.ToString("D2")">@i.ToString("D2")</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ExpiryMonth" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="ExpiryYear" class="form-label"></label>
+                                <select asp-for="ExpiryYear" class="form-control" id="expiryYearInput" name="ExpiryYear">
+                                    <option value="">YYYY</option>
+                                    @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 10; i++)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ExpiryYear" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label asp-for="CVV" class="form-label"></label>
+                                <input asp-for="CVV" class="form-control" placeholder="123" maxlength="4" type="password" name="CVV" />
+                                <span asp-validation-for="CVV" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Badge -->
+                <div class="secure-badge">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Your payment information is secure and encrypted</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn-pay">
+                        🔒 Pay @(booking?.TotalAmount.ToString("C") ?? "$0.00")
+                    </button>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a asp-controller="Reservation" asp-action="Details" asp-route-id="@Model.BookingId"
+                       class="btn btn-link text-muted">
+                        ← Cancel and go back
+                    </a>
+                </div>
+            </form>
+
+            <!-- Terms -->
+            <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #6c757d;">
+                <p style="margin: 0 0 10px 0;">
+                    <strong>Payment Terms:</strong>
+                </p>
+                <ul style="margin: 0; padding-left: 20px;">
+                    <li>Payment is processed securely through our payment gateway</li>
+                    <li>Your card will be charged immediately upon confirmation</li>
+                    <li>Cancellation policy applies as per booking terms</li>
+                    <li>For support, contact: <a href="mailto:support@carrental.ma">support@carrental.ma</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // Payment method toggle
+        document.querySelectorAll('.payment-method-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const method = this.querySelector('input[type="radio"]').value;
+                const cardFields = document.getElementById('cardFields');
+                const cashNotice = document.getElementById('cashNotice');
+
+                if (method === 'Cash') {
+                    cardFields.style.display = 'none';
+                    cashNotice.style.display = 'block';
+                    // Remove name attributes so fields won't be submitted
+                    document.getElementById('cardNumberInput').removeAttribute('name');
+                    document.getElementById('cardholderNameInput').removeAttribute('name');
+                    document.getElementById('expiryMonthInput').removeAttribute('name');
+                    document.getElementById('expiryYearInput').removeAttribute('name');
+                    document.querySelector('input[type="password"]').removeAttribute('name');
+                } else if (method === 'DebitCard') {
+                    cardFields.style.display = 'none';
+                    cashNotice.style.display = 'none';
+                    // Remove name attributes so fields won't be submitted
+                    document.getElementById('cardNumberInput').removeAttribute('name');
+                    document.getElementById('cardholderNameInput').removeAttribute('name');
+                    document.getElementById('expiryMonthInput').removeAttribute('name');
+                    document.getElementById('expiryYearInput').removeAttribute('name');
+                    document.querySelector('input[type="password"]').removeAttribute('name');
+                } else {
+                    cardFields.style.display = 'block';
+                    cashNotice.style.display = 'none';
+                    // Add name attributes back for credit card
+                    document.getElementById('cardNumberInput').setAttribute('name', 'CardNumber');
+                    document.getElementById('cardholderNameInput').setAttribute('name', 'CardholderName');
+                    document.getElementById('expiryMonthInput').setAttribute('name', 'ExpiryMonth');
+                    document.getElementById('expiryYearInput').setAttribute('name', 'ExpiryYear');
+                    document.querySelector('input[type="password"]').setAttribute('name', 'CVV');
+                }
+            });
+        });
+
+        // Card number formatting and display
+        const cardNumberInput = document.getElementById('cardNumberInput');
+        const cardNumberDisplay = document.getElementById('cardNumberDisplay');
+
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\s/g, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || '';
+                e.target.value = formattedValue;
+
+                if (value.length > 0) {
+                    let displayValue = value.replace(/./g, '•');
+                    displayValue = displayValue.match(/.{1,4}/g)?.join(' ') || '';
+                    cardNumberDisplay.textContent = displayValue;
+                } else {
+                    cardNumberDisplay.textContent = '•••• •••• •••• ••••';
+                }
+            });
+        }
+
+        // Cardholder name display
+        const cardholderNameInput = document.getElementById('cardholderNameInput');
+        const cardHolderDisplay = document.getElementById('cardHolderDisplay');
+
+        if (cardholderNameInput) {
+            cardholderNameInput.addEventListener('input', function(e) {
+                if (e.target.value.length > 0) {
+                    cardHolderDisplay.textContent = e.target.value.toUpperCase();
+                } else {
+                    cardHolderDisplay.textContent = 'YOUR NAME';
+                }
+            });
+        }
+
+        // Expiry display
+        const expiryMonthInput = document.getElementById('expiryMonthInput');
+        const expiryYearInput = document.getElementById('expiryYearInput');
+        const cardExpiryDisplay = document.getElementById('cardExpiryDisplay');
+
+        function updateExpiryDisplay() {
+            const month = expiryMonthInput.value || 'MM';
+            const year = expiryYearInput.value ? expiryYearInput.value.slice(-2) : 'YY';
+            cardExpiryDisplay.textContent = `${month}/${year}`;
+        }
+
+        if (expiryMonthInput) {
+            expiryMonthInput.addEventListener('change', updateExpiryDisplay);
+        }
+
+        if (expiryYearInput) {
+            expiryYearInput.addEventListener('change', updateExpiryDisplay);
+        }
+
+        // Initialize card fields visibility on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check which payment method is selected
+            const selectedMethod = document.querySelector('input[name="PaymentMethod"]:checked');
+            const cardFields = document.getElementById('cardFields');
+            const cashNotice = document.getElementById('cashNotice');
+
+            if (selectedMethod && selectedMethod.value === 'Cash') {
+                cardFields.style.display = 'none';
+                cashNotice.style.display = 'block';
+                // Remove name attributes so fields won't be submitted
+                document.getElementById('cardNumberInput').removeAttribute('name');
+                document.getElementById('cardholderNameInput').removeAttribute('name');
+                document.getElementById('expiryMonthInput').removeAttribute('name');
+                document.getElementById('expiryYearInput').removeAttribute('name');
+                document.querySelector('input[type="password"]').removeAttribute('name');
+            } else if (selectedMethod && selectedMethod.value === 'DebitCard') {
+                cardFields.style.display = 'none';
+                cashNotice.style.display = 'none';
+                // Remove name attributes so fields won't be submitted
+                document.getElementById('cardNumberInput').removeAttribute('name');
+                document.getElementById('cardholderNameInput').removeAttribute('name');
+                document.getElementById('expiryMonthInput').removeAttribute('name');
+                document.getElementById('expiryYearInput').removeAttribute('name');
+                document.querySelector('input[type="password"]').removeAttribute('name');
+            }
+
+            // Add smooth animation on page load
+            const container = document.querySelector('.payment-container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                container.style.transition = 'all 0.6s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+}
