@@ -131,10 +131,10 @@ namespace CarRental.Desktop.ViewModels
             CancelRentalCommand = new RelayCommand(async _ => await UpdateStatusAsync("Cancelled"), _ => SelectedRental != null && SelectedRental.Status == "Active");
             
             AddRentalCommand = new RelayCommand(_ => StartAdding());
-            EditRentalCommand = new RelayCommand(_ => StartEditing(), _ => SelectedRental != null);
+            EditRentalCommand = new RelayCommand(_ => StartEditing());
             SaveRentalCommand = new RelayCommand(async _ => await SaveRentalAsync());
             CancelAddCommand = new RelayCommand(_ => { IsAdding = false; _editingRentalId = 0; });
-            DeleteRentalCommand = new RelayCommand(async _ => await DeleteRentalAsync(), _ => SelectedRental != null);
+            DeleteRentalCommand = new RelayCommand(async _ => await DeleteRentalAsync());
 
             _ = LoadRentalsAsync();
         }

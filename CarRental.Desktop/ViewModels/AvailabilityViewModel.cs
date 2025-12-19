@@ -65,12 +65,9 @@ namespace CarRental.Desktop.ViewModels
             
             // In a real app, we'd pass dates to the API
             // For now, let's just filter the list from GetAllVehiclesAsync
-            var vehicles = await _vehicleService.GetAllVehiclesAsync();
+            var vehicles = await _vehicleService.GetAvailableVehiclesAsync(StartDate, EndDate);
             
-            // Simple mock filter: show all "Available" vehicles
-            var available = vehicles.Where(v => v.Status == "Available").ToList();
-            
-            AvailableVehicles = new ObservableCollection<CarRental.Application.DTOs.VehicleDto>(available);
+            AvailableVehicles = new ObservableCollection<CarRental.Application.DTOs.VehicleDto>(vehicles);
             
             IsLoading = false;
         }

@@ -31,5 +31,41 @@ namespace CarRental.Desktop.Services
             // Assuming endpoint is POST /api/Vehicles
             await _apiClient.PostAsync("api/Vehicles", vehicle);
         }
+
+        public async Task UpdateVehicleAsync(VehicleDto vehicle)
+        {
+            // Map to UpdateVehicleDto
+            // Assuming Status string needs parsing to Enum
+            System.Enum.TryParse<CarRental.Core.Enums.VehicleStatus>(vehicle.Status, true, out var statusEnum);
+
+            var updateDto = new UpdateVehicleDto
+            {
+                Make = vehicle.Make,
+                Model = vehicle.Model,
+                Year = vehicle.Year,
+                LicensePlate = vehicle.LicensePlate,
+                Color = string.IsNullOrWhiteSpace(vehicle.Color) ? "Unknown" : vehicle.Color, // Default if null or empty
+                Status = statusEnum,
+                IsInsured = vehicle.IsInsured,
+                InsurancePolicy = "", // DTO in desktop might not have this, leave empty
+                Issues = "",
+                PricePerDay = vehicle.DailyRate,
+                VehicleTypeId = null // Or fetch if available
+            };
+
+            // PUT /api/Vehicles/{id}
+            await _apiClient.PutAsync($"api/Vehicles/{vehicle.Id}", updateDto);
+        }
+
+        public async Task<List<VehicleDto>> GetAvailableVehiclesAsync(System.DateTime start, System.DateTime end)
+        {
+            // GET /api/Vehicles/available?startDate=...&endDate=...
+            // Need to format dates carefully for URL parameters
+            string startStr = start.ToString("yyyy-MM-dd");
+            string endStr = end.ToString("yyyy-MM-dd");
+            
+            var result = await _apiClient.GetAsync<List<VehicleDto>>($"api/Vehicles/available?startDate={startStr}&endDate={endStr}");
+            return result ?? new List<VehicleDto>();
+        }
     }
 }

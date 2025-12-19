@@ -1,13 +1,11 @@
-using System;
 using System.Threading.Tasks;
 using CarRental.Application.DTOs;
-using CarRental.Application.Common.Models; // for Result<T>
 
 namespace CarRental.Desktop.Services
 {
     public interface IDashboardService
     {
-        Task<Result<DashboardDto>> GetDashboardDataAsync();
+        Task<CarRental.Application.Common.Models.Result<DashboardDto>> GetDashboardDataAsync();
     }
 
     public class ApiDashboardService : IDashboardService
@@ -19,23 +17,15 @@ namespace CarRental.Desktop.Services
             _apiClient = apiClient;
         }
 
-        public async Task<Result<DashboardDto>> GetDashboardDataAsync()
+        public async Task<CarRental.Application.Common.Models.Result<DashboardDto>> GetDashboardDataAsync()
         {
-            // The backend endpoint returns ActionResult<DashboardDto>, 
-            // which usually serializes to just DashboardDto on success.
-            // But checking DashboardController:
-            // return Ok(result.Value); where result is Result<DashboardDto>
-            // Wait, DashboardController:
-            // var result = await _dashboardService.GetDashboardDataAsync();
-            // return Ok(result.Value);
-            // This means the API returns the DashboardDto JSON directly.
-            
-            var data = await _apiClient.GetAsync<DashboardDto>("api/Dashboard");
-            if (data != null)
+            // GET /api/Dashboard
+            var result = await _apiClient.GetAsync<DashboardDto>("api/Dashboard");
+            if (result != null)
             {
-                return Result<DashboardDto>.Success(data);
+                return CarRental.Application.Common.Models.Result<DashboardDto>.Success(result);
             }
-            return Result<DashboardDto>.Failure("Failed to load dashboard data.");
+            return CarRental.Application.Common.Models.Result<DashboardDto>.Failure("Failed to load dashboard data.");
         }
     }
 }

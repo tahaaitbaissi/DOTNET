@@ -37,6 +37,15 @@ namespace CarRental.WebApi.Controllers
                 return BadRequest(new ProblemDetails { Title = "Payment Failed", Detail = result.Error });
             }
             return Ok(result.Value);
+            return Ok(result.Value);
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PaymentDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll()
+        {
+            var result = await _paymentService.GetAllPaymentsAsync();
+            return Ok(result.Value);
         }
 
         [HttpGet("{id:long}")]

@@ -41,6 +41,7 @@ namespace CarRental.Persistence.Repositories
             query = query.Where(v => !unavailableVehicleIds.Contains(v.Id));
 
             return await query
+                .Include(v => v.Tariffs)
                 .Include(v => v.Images)
                 .ToListAsync();
         }
@@ -58,6 +59,21 @@ namespace CarRental.Persistence.Repositories
         {
             return await _dbSet
                 .FirstOrDefaultAsync(v => v.VIN == vin);
+        }
+        public override async Task<Vehicle> GetByIdAsync(long id)
+        {
+            return await _dbSet
+                .Include(v => v.Tariffs)
+                .Include(v => v.Images)
+                .FirstOrDefaultAsync(v => v.Id == id);
+        }
+
+        public override async Task<IEnumerable<Vehicle>> GetAllAsync()
+        {
+            return await _dbSet
+                .Include(v => v.Tariffs)
+                .Include(v => v.Images)
+                .ToListAsync();
         }
     }
 }

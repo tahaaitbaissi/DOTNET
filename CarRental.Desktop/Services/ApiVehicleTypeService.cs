@@ -37,8 +37,16 @@ namespace CarRental.Desktop.Services
 
         public async Task UpdateVehicleTypeAsync(VehicleTypeDto vehicleType)
         {
+             // Map to UpdateDto
+             var updateDto = new CarRental.Application.DTOs.UpdateVehicleTypeDto
+             {
+                 Name = vehicleType.Name,
+                 Description = vehicleType.Description,
+                 BaseRate = vehicleType.BaseRate
+             };
+
              // PUT /api/vehicle-types/{id}
-             await _apiClient.PutAsync($"api/vehicle-types/{vehicleType.Id}", vehicleType);
+             await _apiClient.PutAsync($"api/vehicle-types/{vehicleType.Id}", updateDto);
         }
 
         public async Task DeleteVehicleTypeAsync(long id)

@@ -22,6 +22,7 @@ namespace CarRental.Desktop
         private readonly IVehicleTypeService _vehicleTypeService;
         private readonly IBookingServiceClient _bookingService;
         private readonly IDashboardService _dashboardService;
+        private readonly IPaymentService _paymentService;
 
         // UI/Utility Services
         private readonly IDialogService _dialogService;
@@ -47,6 +48,7 @@ namespace CarRental.Desktop
             _apiClient = new ApiClient(baseUrl, _dialogService);
             _authService = new AuthenticationService(_apiClient);
             _dashboardService = new ApiDashboardService(_apiClient);
+            _paymentService = new ApiPaymentService(_apiClient);
 
             // Initialize data services depending on mock flag
             if (config.UseMockServices)
@@ -57,6 +59,8 @@ namespace CarRental.Desktop
                 _employeeService = new ApiEmployeeService(_apiClient);
                 _vehicleTypeService = new ApiVehicleTypeService(_apiClient);
                 _bookingService = new BookingServiceClient();
+                // Mock PaymentService not implemented, falling back to API or null? 
+                // Let's assume API for now as there's no MockPaymentService requested
             }
             else
             {
@@ -153,7 +157,7 @@ namespace CarRental.Desktop
                 return new BookingManagementViewModel(_bookingService, _printService, _dialogService);
 
             if (viewModelType == typeof(PaymentsViewModel))
-                return new PaymentsViewModel();
+                return new PaymentsViewModel(_paymentService);
 
             if (viewModelType == typeof(PaymentManagementViewModel))
                 return new PaymentManagementViewModel(_dialogService);
@@ -162,7 +166,7 @@ namespace CarRental.Desktop
                 return new MaintenanceViewModel(_dialogService);
 
             if (viewModelType == typeof(AlertsViewModel))
-                return new AlertsViewModel();
+                return new AlertsViewModel(_dashboardService);
 
             if (viewModelType == typeof(ReportViewModel))
                 return new ReportViewModel(_fileExportService, _dialogService);

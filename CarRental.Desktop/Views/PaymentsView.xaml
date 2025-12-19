@@ -13,14 +13,16 @@
 
         <TextBlock Text="Payments" FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextBrush}" Margin="0,0,0,20"/>
 
-        <ListBox Grid.Row="1" ItemsSource="{Binding Payments}" Background="Transparent" BorderThickness="0">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="5" Padding="15" Margin="0,0,0,10">
-                        <TextBlock Text="{Binding}" Foreground="{StaticResource TextBrush}" FontSize="16"/>
-                    </Border>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Payments}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="Booking ID" Binding="{Binding BookingId}" Width="80"/>
+                <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100"/>
+                <DataGridTextColumn Header="Method" Binding="{Binding PaymentMethod}" Width="120"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding CreatedAt, StringFormat=d}" Width="100"/>
+                <DataGridTextColumn Header="Ref" Binding="{Binding TransactionRef}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

@@ -10,5 +10,6 @@ namespace CarRental.Application.Interfaces
         Task<Result<PaymentDto>> ProcessPaymentAsync(ProcessPaymentDto dto);
         Task<Result<PaymentDto>> GetPaymentByIdAsync(long id);
         Task<Result<IEnumerable<PaymentDto>>> GetPaymentsByBookingIdAsync(long bookingId);
+        Task<Result<IEnumerable<PaymentDto>>> GetAllPaymentsAsync();
     }
 }

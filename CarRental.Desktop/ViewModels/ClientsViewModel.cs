@@ -71,8 +71,8 @@ namespace CarRental.Desktop.ViewModels
             LoadClientsCommand = new RelayCommand(async _ => await LoadClientsAsync());
             // Add Client enabled
             AddClientCommand = new RelayCommand(_ => StartEdit(null)); 
-            EditClientCommand = new RelayCommand(_ => StartEdit(SelectedClient), _ => SelectedClient != null);
-            DeleteClientCommand = new RelayCommand(async _ => await DeleteClientAsync(), _ => SelectedClient != null);
+            EditClientCommand = new RelayCommand(_ => StartEdit(SelectedClient)); // Removed CanExecute check
+            DeleteClientCommand = new RelayCommand(async _ => await DeleteClientAsync()); // Removed CanExecute check
             SaveCommand = new RelayCommand(async _ => await SaveAsync());
             CancelCommand = new RelayCommand(_ => IsEditing = false);
 
@@ -123,6 +123,7 @@ namespace CarRental.Desktop.ViewModels
                 var updateDto = new CarRental.Application.DTOs.UpdateClientDto
                 {
                     FullName = FullName,
+                    Email = Email,
                     Phone = Phone,
                     Address = Address,
                     DriverLicense = LicenseNumber,

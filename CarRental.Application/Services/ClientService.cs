@@ -131,6 +131,8 @@ namespace CarRental.Application.Services
 
             // Update User Info
             user.FullName = dto.FullName;
+            user.Email = dto.Email; // Update Email
+            user.Username = dto.Email; // Keep username synced with email
             user.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.Clients.UpdateAsync(client);
