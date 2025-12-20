@@ -112,6 +112,13 @@ namespace CarRental.Application.Services
             return Result<IEnumerable<PaymentDto>>.Success(dtos);
         }
 
+        public async Task<Result<IEnumerable<PaymentDto>>> GetAllPaymentsAsync()
+        {
+            var payments = await _unitOfWork.Payments.GetAllAsync();
+            var dtos = payments.Select(MapToDto).ToList();
+            return Result<IEnumerable<PaymentDto>>.Success(dtos);
+        }
+
         private static PaymentDto MapToDto(Payment payment)
         {
             return new PaymentDto

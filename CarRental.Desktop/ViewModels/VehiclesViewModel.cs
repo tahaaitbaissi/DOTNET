@@ -22,6 +22,7 @@ namespace CarRental.Desktop.ViewModels
         private int _year;
         private string _licensePlate;
         private decimal _dailyRate;
+        private string _color; // Added Color
         private string _status; // Simple string for now, or could map to Enum
         private string _imagePath;
         private bool _isGridView;
@@ -62,6 +63,7 @@ namespace CarRental.Desktop.ViewModels
         public int Year { get => _year; set => SetProperty(ref _year, value); }
         public string LicensePlate { get => _licensePlate; set => SetProperty(ref _licensePlate, value); }
         public decimal DailyRate { get => _dailyRate; set => SetProperty(ref _dailyRate, value); }
+        public string Color { get => _color; set => SetProperty(ref _color, value); } // Added Binding
         public string Status { get => _status; set => SetProperty(ref _status, value); }
         public string ImagePath { get => _imagePath; set => SetProperty(ref _imagePath, value); }
 
@@ -80,8 +82,8 @@ namespace CarRental.Desktop.ViewModels
 
             LoadVehiclesCommand = new RelayCommand(async _ => await LoadVehiclesAsync());
             AddVehicleCommand = new RelayCommand(_ => StartEdit(null));
-            EditVehicleCommand = new RelayCommand(_ => StartEdit(SelectedVehicle), _ => SelectedVehicle != null);
-            DeleteVehicleCommand = new RelayCommand(async _ => await DeleteVehicleAsync(), _ => SelectedVehicle != null);
+            EditVehicleCommand = new RelayCommand(_ => StartEdit(SelectedVehicle));
+            DeleteVehicleCommand = new RelayCommand(async _ => await DeleteVehicleAsync());
             SaveCommand = new RelayCommand(async _ => await SaveAsync());
             CancelCommand = new RelayCommand(_ => IsEditing = false);
             BrowseImageCommand = new RelayCommand(ExecuteBrowseImage);
@@ -93,6 +95,8 @@ namespace CarRental.Desktop.ViewModels
 
         private async Task LoadVehiclesAsync()
         {
+            if (!SessionManager.IsLoggedIn) return;
+
             var vehicles = await _vehicleService.GetAllVehiclesAsync();
             Vehicles = new ObservableCollection<VehicleDto>(vehicles);
         }
@@ -108,6 +112,7 @@ namespace CarRental.Desktop.ViewModels
                 Year = DateTime.Now.Year;
                 LicensePlate = "";
                 DailyRate = 0;
+                Color = ""; // Default empty
                 Status = "Available";
                 ImagePath = "";
                 SelectedVehicle = null; // Ensure we are in "Add" mode
@@ -121,6 +126,7 @@ namespace CarRental.Desktop.ViewModels
                 Year = vehicle.Year;
                 LicensePlate = vehicle.LicensePlate;
                 DailyRate = vehicle.DailyRate;
+                Color = vehicle.Color; // Load Color
                 Status = vehicle.Status;
                 // VehicleDto uses ImageUrls List, just use first one or empty
                 ImagePath = (vehicle.ImageUrls != null && vehicle.ImageUrls.Count > 0) ? vehicle.ImageUrls[0] : "";
@@ -143,6 +149,7 @@ namespace CarRental.Desktop.ViewModels
                     Year = Year,
                     LicensePlate = LicensePlate,
                     PricePerDay = DailyRate,
+                    Color = Color, // Map Color
                     Status = vehicleStatus,
                     VIN = Guid.NewGuid().ToString().Substring(0, 17) // Dummy VIN for now if not required by UI
                 };
@@ -154,8 +161,17 @@ namespace CarRental.Desktop.ViewModels
             }
             else
             {
-                // Update Existing - Not implemented in IVehicleService yet for this demo
-                // But typically would call UpdateVehicleAsync
+                // Update Existing
+                 SelectedVehicle.Make = Make;
+                 SelectedVehicle.Model = Model;
+                 SelectedVehicle.Year = Year;
+                 SelectedVehicle.LicensePlate = LicensePlate;
+                 SelectedVehicle.DailyRate = DailyRate;
+                 SelectedVehicle.Color = Color; // Update Color
+                 SelectedVehicle.Status = Status;
+                 
+                 await _vehicleService.UpdateVehicleAsync(SelectedVehicle);
+                 await LoadVehiclesAsync();
             }
             IsEditing = false;
         }

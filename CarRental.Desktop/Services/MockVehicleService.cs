@@ -9,6 +9,8 @@ namespace CarRental.Desktop.Services
     {
         Task<List<CarRental.Application.DTOs.VehicleDto>> GetAllVehiclesAsync();
         Task AddVehicleAsync(CarRental.Application.DTOs.CreateVehicleDto vehicle);
+        Task UpdateVehicleAsync(CarRental.Application.DTOs.VehicleDto vehicle);
+        Task<List<CarRental.Application.DTOs.VehicleDto>> GetAvailableVehiclesAsync(System.DateTime start, System.DateTime end); // Using VehicleDto for convenience in Desktop
     }
 
     public class MockVehicleService : IVehicleService
@@ -44,6 +46,26 @@ namespace CarRental.Desktop.Services
             };
             _vehicles.Add(newVehicle);
             return Task.CompletedTask;
+        }
+
+        public Task UpdateVehicleAsync(CarRental.Application.DTOs.VehicleDto vehicle)
+        {
+            var existing = _vehicles.FirstOrDefault(v => v.Id == vehicle.Id);
+            if (existing != null)
+            {
+                existing.Make = vehicle.Make;
+                existing.Model = vehicle.Model;
+                existing.Year = vehicle.Year;
+                existing.LicensePlate = vehicle.LicensePlate;
+                // ... update other fields
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task<List<CarRental.Application.DTOs.VehicleDto>> GetAvailableVehiclesAsync(System.DateTime start, System.DateTime end)
+        {
+            // Mock filter
+            return Task.FromResult(_vehicles.Where(v => v.Status == "Available").ToList());
         }
     }
 }

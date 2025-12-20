@@ -13,9 +13,9 @@
 
         <!-- Toolbar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-            <Button Content="+ Add Type" Command="{Binding AddCommand}" Width="150"/>
-            <Button Content="Edit" Command="{Binding EditCommand}" Margin="10,0,0,0" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextBrush}"/>
-            <Button Content="Delete" Command="{Binding DeleteCommand}" Margin="10,0,0,0" Background="{StaticResource ErrorBrush}" Foreground="White"/>
+            <Button Content="+ Add Type" Command="{Binding AddVehicleTypeCommand}" Width="150"/>
+            <Button Content="Edit" Command="{Binding EditVehicleTypeCommand}" Margin="10,0,0,0" Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextBrush}"/>
+            <Button Content="Delete" Command="{Binding DeleteVehicleTypeCommand}" Margin="10,0,0,0" Background="{StaticResource ErrorBrush}" Foreground="White"/>
         </StackPanel>
 
         <!-- DataGrid -->

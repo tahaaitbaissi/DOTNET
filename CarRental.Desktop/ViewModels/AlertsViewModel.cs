@@ -5,16 +5,38 @@ namespace CarRental.Desktop.ViewModels
 {
     public class AlertsViewModel : ViewModelBase
     {
-        public ObservableCollection<string> Alerts { get; }
+        private readonly IDashboardService _dashboardService;
+        private ObservableCollection<string> _alerts;
 
-        public AlertsViewModel()
+        public ObservableCollection<string> Alerts
         {
-            Alerts = new ObservableCollection<string>
+             get => _alerts;
+             set => SetProperty(ref _alerts, value);
+        }
+
+        public AlertsViewModel(IDashboardService dashboardService)
+        {
+            _dashboardService = dashboardService;
+            Alerts = new ObservableCollection<string>();
+            
+            Title = "Alerts & Notifications";
+            _ = LoadAlertsAsync();
+        }
+
+        private async Task LoadAlertsAsync()
+        {
+            IsLoading = true;
+            var result = await _dashboardService.GetDashboardDataAsync();
+            
+            if (result.IsSuccess && result.Value.Alerts != null && result.Value.Alerts.Any())
             {
-                "Maintenance Due: Toyota Camry (OIL CHANGE)",
-                "Insurance Expiring: Ford Focus (Expires in 5 days)",
-                "Overdue Return: Tesla Model 3 (Due yesterday)"
-            };
+                Alerts = new ObservableCollection<string>(result.Value.Alerts);
+            }
+            else
+            {
+                Alerts = new ObservableCollection<string> { "No active alerts." };
+            }
+            IsLoading = false;
         }
     }
 }

@@ -3,6 +3,8 @@ using CarRental.Application.DTOs;
 using CarRental.Application.Interfaces;
 using CarRental.Core.Entities;
 using CarRental.Core.Interfaces;
+using CarRental.Core.Interfaces.Services;
+using CarRental.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +15,12 @@ namespace CarRental.Application.Services
     public class ClientService : IClientService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public ClientService(IUnitOfWork unitOfWork)
+        public ClientService(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
         {
             _unitOfWork = unitOfWork;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<Result<IEnumerable<ClientDto>>> GetAllClientsAsync()
@@ -62,6 +66,48 @@ namespace CarRental.Application.Services
             return Result<ClientDto>.Success(MapToDto(client, user));
         }
 
+        public async Task<Result<ClientDto>> CreateClientAsync(CreateClientDto dto)
+        {
+            // Check if user with email already exists
+            var existingUser = await _unitOfWork.Users.GetByEmailAsync(dto.Email);
+            if (existingUser != null)
+            {
+                return Result<ClientDto>.Failure("User with this email already exists.");
+            }
+
+            // Create User account
+            var user = new User
+            {
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Username = dto.Email, // Use email as username
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                IsEmailVerified = true, // Auto-verify for admin created clients
+                RoleId = (long)UserRole.Client,
+                PasswordHash = _passwordHasher.HashPassword("Client@123") // Default password
+            };
+
+            await _unitOfWork.Users.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync(); // Save user to get Id
+
+            // Create Client profile
+            var client = new Client
+            {
+                UserId = user.Id,
+                Phone = dto.Phone,
+                Address = dto.Address,
+                DriverLicense = dto.DriverLicense,
+                LicenseExpiry = dto.LicenseExpiry,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.Clients.AddAsync(client);
+            await _unitOfWork.SaveChangesAsync();
+
+            return Result<ClientDto>.Success(MapToDto(client, user));
+        }
+
         public async Task<Result<ClientDto>> UpdateClientAsync(long id, UpdateClientDto dto)
         {
             var client = await _unitOfWork.Clients.GetByIdAsync(id);
@@ -85,6 +131,8 @@ namespace CarRental.Application.Services
 
             // Update User Info
             user.FullName = dto.FullName;
+            user.Email = dto.Email; // Update Email
+            user.Username = dto.Email; // Keep username synced with email
             user.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.Clients.UpdateAsync(client);

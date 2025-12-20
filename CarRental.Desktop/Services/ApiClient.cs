@@ -67,9 +67,12 @@ namespace CarRental.Desktop.Services
 
         public async Task<(TResult? Result, string? Error)> GetRawAsync<TResult>(string endpoint)
         {
+            FileLogger.Log($"GET Request: {endpoint}");
             try
             {
                 var response = await _httpClient.GetAsync(endpoint);
+                FileLogger.Log($"GET Response {endpoint}: {response.StatusCode}");
+                
                 var content = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
@@ -81,21 +84,25 @@ namespace CarRental.Desktop.Services
                     catch (Exception ex)
                     {
                         var err = "Deserialization failed: " + ex.Message;
+                        FileLogger.LogError(err, ex);
                         await _dialogService?.ShowErrorAsync("Deserialization Error", err);
                         return (default, err);
                     }
                 }
 
                 // Show server-provided error
+                FileLogger.LogError($"GET {endpoint} Failed: {content}");
                 return (default, content);
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"GET {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return (default, hre.Message);
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"GET {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return (default, ex.Message);
             }
@@ -103,12 +110,15 @@ namespace CarRental.Desktop.Services
 
         public async Task<bool> PostAsync<T>(string endpoint, T data)
         {
+            FileLogger.Log($"POST Request: {endpoint}");
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+                FileLogger.Log($"POST Response {endpoint}: {response.StatusCode}");
                 if (!response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
+                    FileLogger.LogError($"POST {endpoint} Failed: {content}");
                     await _dialogService?.ShowErrorAsync("API Error", content);
                     return false;
                 }
@@ -116,11 +126,13 @@ namespace CarRental.Desktop.Services
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"POST {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return false;
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"POST {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return false;
             }
@@ -128,9 +140,11 @@ namespace CarRental.Desktop.Services
 
         public async Task<(TResult? Result, string? Error)> PostAsync<TInput, TResult>(string endpoint, TInput data)
         {
+            FileLogger.Log($"POST Request (Expected Result): {endpoint}");
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(endpoint, data);
+                FileLogger.Log($"POST Response {endpoint}: {response.StatusCode}");
                 var content = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
@@ -142,20 +156,24 @@ namespace CarRental.Desktop.Services
                     catch (Exception ex)
                     {
                         var err = "Deserialization failed: " + ex.Message;
+                        FileLogger.LogError(err, ex);
                         await _dialogService?.ShowErrorAsync("Deserialization Error", err);
                         return (default, err);
                     }
                 }
-
+                
+                FileLogger.LogError($"POST {endpoint} Failed: {content}");
                 return (default, content);
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"POST {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return (default, hre.Message);
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"POST {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return (default, ex.Message);
             }
@@ -163,12 +181,15 @@ namespace CarRental.Desktop.Services
 
         public async Task<bool> PutAsync<T>(string endpoint, T data)
         {
+            FileLogger.Log($"PUT Request: {endpoint}");
             try
             {
                 var response = await _httpClient.PutAsJsonAsync(endpoint, data);
+                FileLogger.Log($"PUT Response {endpoint}: {response.StatusCode}");
                 if (!response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
+                    FileLogger.LogError($"PUT {endpoint} Failed: {content}");
                     await _dialogService?.ShowErrorAsync("API Error", content);
                     return false;
                 }
@@ -176,11 +197,13 @@ namespace CarRental.Desktop.Services
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"PUT {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return false;
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"PUT {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return false;
             }
@@ -188,23 +211,28 @@ namespace CarRental.Desktop.Services
 
         public async Task<(bool Success, string? Error)> PutRawAsync<T>(string endpoint, T data)
         {
+            FileLogger.Log($"PUT Raw Request: {endpoint}");
             try
             {
                 var response = await _httpClient.PutAsJsonAsync(endpoint, data);
                 var content = await response.Content.ReadAsStringAsync();
+                FileLogger.Log($"PUT Raw Response {endpoint}: {response.StatusCode}");
                 if (!response.IsSuccessStatusCode)
                 {
+                    FileLogger.LogError($"PUT Raw {endpoint} Failed: {content}");
                     return (false, content);
                 }
                 return (true, null);
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"PUT Raw {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return (false, hre.Message);
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"PUT Raw {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return (false, ex.Message);
             }
@@ -212,23 +240,28 @@ namespace CarRental.Desktop.Services
 
         public async Task<(bool Success, string? Error)> DeleteAsync(string endpoint)
         {
+            FileLogger.Log($"DELETE Request: {endpoint}");
             try
             {
                 var response = await _httpClient.DeleteAsync(endpoint);
                 var content = await response.Content.ReadAsStringAsync();
+                FileLogger.Log($"DELETE Response {endpoint}: {response.StatusCode}");
                 if (!response.IsSuccessStatusCode)
                 {
+                    FileLogger.LogError($"DELETE {endpoint} Failed: {content}");
                     return (false, content);
                 }
                 return (true, null);
             }
             catch (HttpRequestException hre)
             {
+                FileLogger.LogError($"DELETE {endpoint} Network Error", hre);
                 await HandleHttpExceptionAsync(hre);
                 return (false, hre.Message);
             }
             catch (Exception ex)
             {
+                FileLogger.LogError($"DELETE {endpoint} Exception", ex);
                 await _dialogService?.ShowErrorAsync("Error", ex.Message);
                 return (false, ex.Message);
             }

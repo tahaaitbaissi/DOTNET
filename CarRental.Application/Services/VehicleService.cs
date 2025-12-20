@@ -146,6 +146,10 @@ namespace CarRental.Application.Services
                 return Result<VehicleDto>.Failure("Vehicle not found.");
             }
 
+            vehicle.Make = dto.Make;
+            vehicle.Model = dto.Model;
+            vehicle.Year = dto.Year;
+            vehicle.LicensePlate = dto.LicensePlate;
             vehicle.Color = dto.Color;
             vehicle.Status = dto.Status;
             vehicle.IsInsured = dto.IsInsured;

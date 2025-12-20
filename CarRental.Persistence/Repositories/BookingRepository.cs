@@ -61,5 +61,15 @@ namespace CarRental.Persistence.Repositories
                 .Include(b => b.Client)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Booking>> GetAllWithDetailsAsync()
+        {
+            return await _dbSet
+                .Include(b => b.Vehicle)
+                .Include(b => b.Client)
+                .ThenInclude(c => c.User)
+                .OrderByDescending(b => b.StartDate)
+                .ToListAsync();
+        }
     }
 }

@@ -31,7 +31,24 @@ namespace CarRental.WebApi.Controllers
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetAll()
         {
             var result = await _clientService.GetAllClientsAsync();
-            return Ok(result.Value);
+            if (result.IsSuccess)
+            {
+                return Ok(result.Value);
+            }
+            return BadRequest(result.Error);
+        }
+
+        [HttpPost]
+        [ProducesResponseType(typeof(ClientDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ClientDto>> Create([FromBody] CreateClientDto dto)
+        {
+            var result = await _clientService.CreateClientAsync(dto);
+            if (result.IsSuccess)
+            {
+                return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value);
+            }
+            return BadRequest(new ProblemDetails { Title = "Creation Failed", Detail = result.Error });
         }
 
         /// <summary>

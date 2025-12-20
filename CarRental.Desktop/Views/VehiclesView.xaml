@@ -106,11 +106,14 @@
                             <Label Content="Daily Rate"/>
                             <TextBox Text="{Binding DailyRate, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15"/>
 
+                            <Label Content="Color"/>
+                            <TextBox Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,15"/>
+
                             <Label Content="Status"/>
-                            <ComboBox SelectedValue="{Binding Status}" SelectedValuePath="Content" Height="40" Margin="0,0,0,15">
-                                <ComboBoxItem Content="Available"/>
-                                <ComboBoxItem Content="Rented"/>
-                                <ComboBoxItem Content="Maintenance"/>
+                            <ComboBox SelectedValue="{Binding Status}" SelectedValuePath="Tag" Height="40" Margin="0,0,0,15">
+                                <ComboBoxItem Content="Available" Tag="Available"/>
+                                <ComboBoxItem Content="Rented" Tag="Rented"/>
+                                <ComboBoxItem Content="Maintenance" Tag="InMaintenance"/>
                             </ComboBox>
 
                             <Label Content="Image"/>

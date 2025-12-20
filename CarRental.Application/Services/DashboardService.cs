@@ -78,6 +78,40 @@ namespace CarRental.Application.Services
                 .ToList();
             dto.RecentBookings = recent;
 
+            // 6. Alerts
+            var alerts = new List<string>();
+            
+            // Maintenance
+            var maintenanceCount = allVehicles.Count(v => v.Status == VehicleStatus.InMaintenance);
+            if (maintenanceCount > 0)
+            {
+                alerts.Add($"{maintenanceCount} vehicles currently in maintenance.");
+            }
+
+            // Overdue Returns (Active bookings where end date < now)
+            var overdue = allBookings.Count(b => b.Status == BookingStatus.Confirmed && b.EndDate < DateTime.UtcNow);
+            if (overdue > 0)
+            {
+                alerts.Add($"{overdue} bookings are overdue for return!");
+            }
+
+            // Returns Due Today
+            var today = DateTime.UtcNow.Date;
+            var returnsToday = allBookings.Count(b => b.Status == BookingStatus.Confirmed && b.EndDate.Date == today);
+            if (returnsToday > 0)
+            {
+                alerts.Add($"{returnsToday} vehicles due for return today.");
+            }
+
+             // Pickups Due Today
+            var pickupsToday = allBookings.Count(b => b.Status == BookingStatus.Confirmed && b.StartDate.Date == today);
+            if (pickupsToday > 0)
+             {
+                 alerts.Add($"{pickupsToday} scheduled pickups for today.");
+             }
+
+            dto.Alerts = alerts;
+
             return Result<DashboardDto>.Success(dto);
         }
     }

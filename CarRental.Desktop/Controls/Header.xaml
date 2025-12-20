@@ -7,8 +7,8 @@
              d:DesignHeight="60" d:DesignWidth="800">
     <Border Background="{StaticResource GlassSurfaceBrush}" BorderBrush="{StaticResource NeonBorderBrush}" BorderThickness="0,0,0,1" Padding="20,0">
         <Grid>
-            <!-- Bind Title to the DataContext (MainViewModel).CurrentView.Title -->
-            <TextBlock Text="{Binding CurrentView.Title, TargetNullValue=Dashboard, FallbackValue=Dashboard}" 
+            <!-- Bind Title to the DataContext (MainViewModel).CurrentPageTitle -->
+            <TextBlock Text="{Binding CurrentPageTitle, TargetNullValue=Dashboard, FallbackValue=Dashboard}" 
                        VerticalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}"/>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">

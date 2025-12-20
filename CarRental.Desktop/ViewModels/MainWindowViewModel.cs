@@ -38,6 +38,9 @@ namespace CarRental.Desktop.ViewModels
             // S'abonner aux changements de navigation
             _navigationService.CurrentViewModelChanged += OnCurrentViewModelChanged;
 
+            // Subscribe to Auth changes
+            _authService.AuthStateChanged += OnAuthStateChanged;
+
             // Créer les commandes de navigation
             NavigateToDashboardCommand = new RelayCommand(_ => NavigateToDashboard());
             NavigateToClientsCommand = new RelayCommand(_ => NavigateToClients());
@@ -232,6 +235,8 @@ namespace CarRental.Desktop.ViewModels
                 IsLoading = true;
                 ClearError();
 
+                if (!IsLoggedIn) return;
+
                 var dashboard = await _bookingService.GetDashboardDataAsync();
 
                 if (dashboard?.RecentBookings != null)
@@ -274,6 +279,24 @@ namespace CarRental.Desktop.ViewModels
             }
         }
 
+        private void OnAuthStateChanged()
+        {
+            OnPropertyChanged(nameof(IsLoggedIn));
+            OnPropertyChanged(nameof(CurrentUserName));
+            OnPropertyChanged(nameof(CurrentUserRole));
+            OnPropertyChanged(nameof(IsAdmin));
+
+            // Reload sidebar data if logged in
+            if (IsLoggedIn)
+            {
+                _ = LoadRecentBookingsAsync();
+            }
+            else
+            {
+                RecentBookings.Clear();
+            }
+        }
+
         #endregion
 
         #region Cleanup
@@ -284,6 +307,7 @@ namespace CarRental.Desktop.ViewModels
         public void OnClosing()
         {
             _navigationService.CurrentViewModelChanged -= OnCurrentViewModelChanged;
+            _authService.AuthStateChanged -= OnAuthStateChanged;
         }
 
         #endregion

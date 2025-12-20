@@ -10,5 +10,6 @@ namespace CarRental.Core.Interfaces.Repositories
         Task<IEnumerable<Booking>> GetBookingsForClientAsync(long clientId);
         Task<bool> IsVehicleAvailableAsync(long vehicleId, DateRange range);
         Task<IEnumerable<Booking>> GetBookingsOverlappingWithDateRangeAsync(DateRange range);
+        Task<IEnumerable<Booking>> GetAllWithDetailsAsync();
     }
 }

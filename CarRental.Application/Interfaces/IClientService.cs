@@ -10,6 +10,7 @@ namespace CarRental.Application.Interfaces
         Task<Result<IEnumerable<ClientDto>>> GetAllClientsAsync();
         Task<Result<ClientDto>> GetClientByIdAsync(long id);
         Task<Result<ClientDto>> GetClientByUserIdAsync(long userId);
+        Task<Result<ClientDto>> CreateClientAsync(CreateClientDto dto);
         Task<Result<ClientDto>> UpdateClientAsync(long id, UpdateClientDto dto);
         Task<Result<bool>> DeleteClientAsync(long id);
     }

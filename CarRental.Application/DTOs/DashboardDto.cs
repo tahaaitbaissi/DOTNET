@@ -16,5 +16,6 @@ namespace CarRental.Application.DTOs
         public decimal MonthlyRevenue { get; set; }
         
         public List<BookingDto> RecentBookings { get; set; }
+        public List<string> Alerts { get; set; } = new List<string>();
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Windows;
 using CarRental.Desktop.Services;
 using CarRental.Desktop.ViewModels;
@@ -21,6 +22,7 @@ namespace CarRental.Desktop
         private readonly IVehicleTypeService _vehicleTypeService;
         private readonly IBookingServiceClient _bookingService;
         private readonly IDashboardService _dashboardService;
+        private readonly IPaymentService _paymentService;
 
         // UI/Utility Services
         private readonly IDialogService _dialogService;
@@ -29,6 +31,10 @@ namespace CarRental.Desktop
 
         public App()
         {
+            // Set up global exception handling
+            this.DispatcherUnhandledException += App_DispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             // 1. Load Configuration
             var config = Configuration.ConfigurationLoader.Load();
 
@@ -42,6 +48,7 @@ namespace CarRental.Desktop
             _apiClient = new ApiClient(baseUrl, _dialogService);
             _authService = new AuthenticationService(_apiClient);
             _dashboardService = new ApiDashboardService(_apiClient);
+            _paymentService = new ApiPaymentService(_apiClient);
 
             // Initialize data services depending on mock flag
             if (config.UseMockServices)
@@ -52,6 +59,8 @@ namespace CarRental.Desktop
                 _employeeService = new ApiEmployeeService(_apiClient);
                 _vehicleTypeService = new ApiVehicleTypeService(_apiClient);
                 _bookingService = new BookingServiceClient();
+                // Mock PaymentService not implemented, falling back to API or null? 
+                // Let's assume API for now as there's no MockPaymentService requested
             }
             else
             {
@@ -64,8 +73,35 @@ namespace CarRental.Desktop
             }
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
+            LogException(e.Exception, "DispatcherUnhandledException");
+            e.Handled = true; // Prevent crash if possible, or at least log it
+            MessageBox.Show($"An unhandled exception occurred: {e.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            LogException(e.ExceptionObject as Exception, "CurrentDomain_UnhandledException");
+        }
+
+        private void LogException(Exception? ex, string source)
+        {
+            if (ex == null) return;
+            try
+            {
+                string logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "desktop_crash.log");
+                string message = $"{DateTime.Now}: [{source}] {ex.Message}\nStack Trace: {ex.StackTrace}\n\n";
+                File.AppendAllText(logFile, message);
+                
+                // Also try to log to our FileLogger if possible, but manual append is safer for crashes
+            }
+            catch { /* Ignore logging errors during crash */ }
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            CarRental.Desktop.Services.FileLogger.Log("Application Starting...");
             base.OnStartup(e);
 
             _navigationService = new NavigationService(CreateViewModel);
@@ -81,6 +117,8 @@ namespace CarRental.Desktop
             };
 
             mainWindow.Show();
+            
+            mainWindow.Closed += (s, args) => CarRental.Desktop.Services.FileLogger.Log("Application Closed.");
         }
 
         private ViewModelBase CreateViewModel(Type viewModelType)
@@ -113,13 +151,13 @@ namespace CarRental.Desktop
                 return new EmployeesViewModel(_employeeService);
 
             if (viewModelType == typeof(RentalsViewModel))
-                return new RentalsViewModel(_rentalService);
+                return new RentalsViewModel(_rentalService, _clientService, _vehicleService, _dialogService);
 
             if (viewModelType == typeof(BookingManagementViewModel))
                 return new BookingManagementViewModel(_bookingService, _printService, _dialogService);
 
             if (viewModelType == typeof(PaymentsViewModel))
-                return new PaymentsViewModel();
+                return new PaymentsViewModel(_paymentService);
 
             if (viewModelType == typeof(PaymentManagementViewModel))
                 return new PaymentManagementViewModel(_dialogService);
@@ -128,7 +166,7 @@ namespace CarRental.Desktop
                 return new MaintenanceViewModel(_dialogService);
 
             if (viewModelType == typeof(AlertsViewModel))
-                return new AlertsViewModel();
+                return new AlertsViewModel(_dashboardService);
 
             if (viewModelType == typeof(ReportViewModel))
                 return new ReportViewModel(_fileExportService, _dialogService);

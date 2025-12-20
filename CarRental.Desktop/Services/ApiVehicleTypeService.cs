@@ -24,27 +24,35 @@ namespace CarRental.Desktop.Services
 
         public async Task<List<VehicleTypeDto>> GetAllVehicleTypesAsync()
         {
-            // GET /api/VehicleTypes
-            var result = await _apiClient.GetAsync<List<VehicleTypeDto>>("api/VehicleTypes");
+            // GET /api/vehicle-types
+            var result = await _apiClient.GetAsync<List<VehicleTypeDto>>("api/vehicle-types");
             return result ?? new List<VehicleTypeDto>();
         }
 
         public async Task AddVehicleTypeAsync(CreateVehicleTypeDto vehicleType)
         {
-             // POST /api/VehicleTypes
-             await _apiClient.PostAsync("api/VehicleTypes", vehicleType);
+             // POST /api/vehicle-types
+             await _apiClient.PostAsync("api/vehicle-types", vehicleType);
         }
 
         public async Task UpdateVehicleTypeAsync(VehicleTypeDto vehicleType)
         {
-             // PUT /api/VehicleTypes/{id}
-             await _apiClient.PutAsync($"api/VehicleTypes/{vehicleType.Id}", vehicleType);
+             // Map to UpdateDto
+             var updateDto = new CarRental.Application.DTOs.UpdateVehicleTypeDto
+             {
+                 Name = vehicleType.Name,
+                 Description = vehicleType.Description,
+                 BaseRate = vehicleType.BaseRate
+             };
+
+             // PUT /api/vehicle-types/{id}
+             await _apiClient.PutAsync($"api/vehicle-types/{vehicleType.Id}", updateDto);
         }
 
         public async Task DeleteVehicleTypeAsync(long id)
         {
-             // DELETE /api/VehicleTypes/{id}
-             await _apiClient.DeleteAsync($"api/VehicleTypes/{id}");
+             // DELETE /api/vehicle-types/{id}
+             await _apiClient.DeleteAsync($"api/vehicle-types/{id}");
         }
     }
 }

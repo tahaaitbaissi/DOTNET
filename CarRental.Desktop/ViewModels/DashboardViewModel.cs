@@ -46,6 +46,12 @@ namespace CarRental.Desktop.ViewModels
         {
             IsLoading = true;
             
+            if (!SessionManager.IsLoggedIn)
+            {
+                IsLoading = false;
+                return;
+            }
+            
             var result = await _dashboardService.GetDashboardDataAsync();
 
             if (result.IsSuccess && result.Value != null)

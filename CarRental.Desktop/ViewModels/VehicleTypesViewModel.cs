@@ -75,6 +75,7 @@ namespace CarRental.Desktop.ViewModels
 
         private async Task LoadVehicleTypesAsync()
         {
+            if (!SessionManager.IsLoggedIn) return;
             var vehicleTypes = await _vehicleTypeService.GetAllVehicleTypesAsync();
             VehicleTypes = new ObservableCollection<VehicleTypeDto>(vehicleTypes);
         }
