@@ -21,7 +21,7 @@
                 <div class="card vehicle-card h-100 hover-lift">
                     @if (!string.IsNullOrEmpty(vehicule.ImageUrl))
                     {
-                        <img src="@vehicule.ImageUrl" class="card-img-top" alt="@vehicule.Make @vehicule.Model" style="height: 250px; object-fit: cover;">
+                        <img src="@ImageHelper.GetFullImageUrl(vehicule.ImageUrl)" class="card-img-top" alt="@vehicule.Make @vehicule.Model" style="height: 250px; object-fit: cover;">
                     }
                     else
                     {

@@ -131,6 +131,36 @@ namespace CarRental.Desktop.Services
             return Task.FromResult(false);
         }
 
+        public Task<bool> ConfirmBookingAsync(long id)
+        {
+            var booking = _mockBookings.FirstOrDefault(b => b.Id == id);
+            if (booking != null && booking.Status == "Pending")
+            {
+                booking.Status = "Confirmed";
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> CompleteBookingAsync(long id, ReturnVehicleDto returnDto)
+        {
+            var booking = _mockBookings.FirstOrDefault(b => b.Id == id);
+            if (booking != null && booking.Status == "Confirmed")
+            {
+                booking.Status = "Completed";
+                if (!string.IsNullOrEmpty(returnDto.ConditionNotes))
+                {
+                    booking.Notes = string.IsNullOrEmpty(booking.Notes) 
+                        ? returnDto.ConditionNotes 
+                        : $"{booking.Notes}\n{returnDto.ConditionNotes}";
+                }
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
         public Task<List<BookingDto>> GetActiveBookingsAsync()
         {
             var activeStatuses = new[] { "Active", "Pending", "Confirmed" };

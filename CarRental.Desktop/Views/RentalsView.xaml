@@ -20,6 +20,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
             <Button Content="+ New Rental" Command="{Binding AddRentalCommand}" Background="{StaticResource PrimaryBrush}" Foreground="White" Width="120"/>
             <Button Content="Edit" Command="{Binding EditRentalCommand}" Margin="10,0,0,0" Background="{StaticResource PrimaryBrush}" Foreground="White" Width="100"/>
+            <Button Content="Confirm" Command="{Binding ConfirmRentalCommand}" Margin="10,0,0,0" Background="{StaticResource InfoBrush}" Foreground="White" Width="100"/>
             <Button Content="Complete" Command="{Binding CompleteRentalCommand}" Margin="10,0,0,0" Background="{StaticResource SuccessBrush}" Foreground="{StaticResource BackgroundBrush}" Width="100"/>
             <Button Content="Cancel" Command="{Binding CancelRentalCommand}" Margin="10,0,0,0" Background="{StaticResource WarningBrush}" Foreground="Black" Width="100"/>
             <Button Content="Delete" Command="{Binding DeleteRentalCommand}" Margin="10,0,0,0" Background="{StaticResource ErrorBrush}" Foreground="White" Width="100"/>

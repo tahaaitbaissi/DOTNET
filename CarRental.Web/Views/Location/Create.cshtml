@@ -20,7 +20,7 @@
             <div class="card-body">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    <img src="@Model.ImageUrl" class="img-fluid rounded mb-3" alt="@Model.Make @Model.Model" />
+                    <img src="@ImageHelper.GetFullImageUrl(Model.ImageUrl)" class="img-fluid rounded mb-3" alt="@Model.Make @Model.Model" />
                 }
                 <h5>@Model.Make @Model.Model</h5>
                 <p>

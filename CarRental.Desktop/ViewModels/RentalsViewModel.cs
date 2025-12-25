@@ -14,14 +14,14 @@ namespace CarRental.Desktop.ViewModels
         private readonly IDialogService _dialogService;
 
         private ObservableCollection<BookingDto> _rentals;
-        private BookingDto _selectedRental;
+        private BookingDto? _selectedRental;
         private bool _isAdding;
         
         // Form Data
         private ObservableCollection<ClientDto> _clients;
         private ObservableCollection<VehicleDto> _vehicles;
-        private ClientDto _selectedClient;
-        private VehicleDto _selectedVehicle;
+        private ClientDto? _selectedClient;
+        private VehicleDto? _selectedVehicle;
         private DateTime _newStartDate = DateTime.Today;
         private DateTime _newEndDate = DateTime.Today.AddDays(1);
         private string _newPickUpLocation = "";
@@ -34,7 +34,7 @@ namespace CarRental.Desktop.ViewModels
             set => SetProperty(ref _rentals, value);
         }
 
-        public BookingDto SelectedRental
+        public BookingDto? SelectedRental
         {
             get => _selectedRental;
             set => SetProperty(ref _selectedRental, value);
@@ -58,13 +58,13 @@ namespace CarRental.Desktop.ViewModels
             set => SetProperty(ref _vehicles, value);
         }
 
-        public ClientDto SelectedClient
+        public ClientDto? SelectedClient
         {
             get => _selectedClient;
             set => SetProperty(ref _selectedClient, value);
         }
 
-        public VehicleDto SelectedVehicle
+        public VehicleDto? SelectedVehicle
         {
             get => _selectedVehicle;
             set => SetProperty(ref _selectedVehicle, value);
@@ -101,6 +101,7 @@ namespace CarRental.Desktop.ViewModels
         }
 
         public ICommand LoadRentalsCommand { get; }
+        public ICommand ConfirmRentalCommand { get; }
         public ICommand CompleteRentalCommand { get; }
         public ICommand CancelRentalCommand { get; }
         public ICommand AddRentalCommand { get; }
@@ -109,7 +110,7 @@ namespace CarRental.Desktop.ViewModels
         public ICommand CancelAddCommand { get; }
         public ICommand DeleteRentalCommand { get; }
         
-        private long _editingRentalId = 0; // 0 means creating new
+        private long _editingRentalId = 0;
 
         public RentalsViewModel(
             IRentalService rentalService, 
@@ -127,8 +128,9 @@ namespace CarRental.Desktop.ViewModels
             _vehicles = new ObservableCollection<VehicleDto>();
 
             LoadRentalsCommand = new RelayCommand(async _ => await LoadRentalsAsync());
-            CompleteRentalCommand = new RelayCommand(async _ => await UpdateStatusAsync("Completed"), _ => SelectedRental != null && SelectedRental.Status == "Active");
-            CancelRentalCommand = new RelayCommand(async _ => await UpdateStatusAsync("Cancelled"), _ => SelectedRental != null && SelectedRental.Status == "Active");
+            ConfirmRentalCommand = new RelayCommand(async _ => await ConfirmRentalAsync(), _ => SelectedRental != null && SelectedRental.Status == "Pending");
+            CompleteRentalCommand = new RelayCommand(async _ => await CompleteRentalAsync(), _ => SelectedRental != null && SelectedRental.Status == "Confirmed");
+            CancelRentalCommand = new RelayCommand(async _ => await CancelRentalAsync(), _ => SelectedRental != null && (SelectedRental.Status == "Pending" || SelectedRental.Status == "Confirmed"));
             
             AddRentalCommand = new RelayCommand(_ => StartAdding());
             EditRentalCommand = new RelayCommand(_ => StartEditing());
@@ -303,26 +305,83 @@ namespace CarRental.Desktop.ViewModels
             }
         }
 
-        private async Task UpdateStatusAsync(string newStatus)
+        private async Task ConfirmRentalAsync()
         {
-            if (SelectedRental != null)
+            if (SelectedRental == null) return;
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Confirm Rental", $"Are you sure you want to confirm rental #{SelectedRental.Id}?");
+            if (!confirm) return;
+
+            IsLoading = true;
+            try
             {
-                try
-                {
-                    SelectedRental.Status = newStatus;
-                    await _rentalService.UpdateRentalStatusAsync(SelectedRental.Id, newStatus);
-                    
-                    var index = Rentals.IndexOf(SelectedRental);
-                    if (index >= 0)
-                    {
-                        Rentals[index] = SelectedRental;
-                    }
-                     await _dialogService.ShowSuccessAsync("Success", $"Rental status updated to {newStatus}");
-                }
-                catch (Exception ex)
-                {
-                    await _dialogService.ShowErrorAsync("Error", "Failed to update status: " + ex.Message);
-                }
+                await _rentalService.ConfirmRentalAsync(SelectedRental.Id);
+                await LoadRentalsAsync();
+                await _dialogService.ShowSuccessAsync("Success", "Rental confirmed.");
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync("Error", "Failed to confirm: " + ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private async Task CompleteRentalAsync()
+        {
+            if (SelectedRental == null) return;
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Complete Rental", $"Are you sure you want to complete rental #{SelectedRental.Id}?");
+            if (!confirm) return;
+
+            IsLoading = true;
+            try
+            {
+                var returnDto = new ReturnVehicleDto(
+                    SelectedRental.Id,
+                    DateTime.Now,
+                    null,
+                    "Completed via desktop app",
+                    false,
+                    null
+                );
+                await _rentalService.CompleteRentalAsync(SelectedRental.Id, returnDto);
+                await LoadRentalsAsync();
+                await _dialogService.ShowSuccessAsync("Success", "Rental completed.");
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync("Error", "Failed to complete: " + ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private async Task CancelRentalAsync()
+        {
+            if (SelectedRental == null) return;
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Cancel Rental", $"Are you sure you want to cancel rental #{SelectedRental.Id}?");
+            if (!confirm) return;
+
+            IsLoading = true;
+            try
+            {
+                await _rentalService.CancelRentalAsync(SelectedRental.Id);
+                await LoadRentalsAsync();
+                await _dialogService.ShowSuccessAsync("Success", "Rental cancelled.");
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync("Error", "Failed to cancel: " + ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
     }

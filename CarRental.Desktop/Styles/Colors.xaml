@@ -11,6 +11,7 @@
     <Color x:Key="SuccessColor">#00F2C3</Color>
     <Color x:Key="ErrorColor">#FD5D93</Color>
     <Color x:Key="WarningColor">#FF8D72</Color>
+    <Color x:Key="InfoColor">#3B82F6</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
@@ -21,6 +22,7 @@
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
 
     <!-- Transparent Brushes for Glassmorphism hints -->
     <SolidColorBrush x:Key="GlassSurfaceBrush" Color="#27293D" Opacity="0.7"/>

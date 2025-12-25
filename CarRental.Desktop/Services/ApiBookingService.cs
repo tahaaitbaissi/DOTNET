@@ -48,6 +48,19 @@ namespace CarRental.Desktop.Services
             return success;
         }
 
+        public async Task<bool> ConfirmBookingAsync(long id)
+        {
+            // Use PUT endpoint for confirmation
+            var (success, error) = await _apiClient.PutRawAsync($"api/Bookings/{id}/confirm", new { });
+            return success;
+        }
+
+        public async Task<bool> CompleteBookingAsync(long id, ReturnVehicleDto returnDto)
+        {
+            var success = await _apiClient.PutAsync($"api/Bookings/{id}/return", returnDto);
+            return success;
+        }
+
         public async Task<List<BookingDto>> GetActiveBookingsAsync()
         {
             // Fetch all via reports and filter client-side

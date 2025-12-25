@@ -11,6 +11,8 @@ namespace CarRental.Desktop.Services
         Task<BookingDto> CreateBookingAsync(CreateBookingDto booking);
         Task<bool> UpdateBookingAsync(BookingDto booking);
         Task<bool> CancelBookingAsync(long id);
+        Task<bool> ConfirmBookingAsync(long id);
+        Task<bool> CompleteBookingAsync(long id, ReturnVehicleDto returnDto);
         Task<List<BookingDto>> GetActiveBookingsAsync();
         Task<DashboardDto> GetDashboardDataAsync();
     }

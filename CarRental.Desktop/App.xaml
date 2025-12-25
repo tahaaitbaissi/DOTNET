@@ -9,8 +9,10 @@
                 <ResourceDictionary Source="Styles/ControlStyles.xaml"/>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
